@@ -38,7 +38,7 @@ export default function Layout({ children }: LayoutProps) {
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Top navbar */}
         <header className="bg-white shadow-sm z-10">
-          <div className="flex items-center justify-between px-4 py-3">
+          <div className="flex items-center justify-between px-4 ">
             <button
               onClick={() => setSidebarOpen(true)}
               className="lg:hidden p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100"
@@ -57,17 +57,12 @@ export default function Layout({ children }: LayoutProps) {
                 />
               </svg>
             </button>
-            <div className="flex-1 lg:flex-none">
-              <h1 className="text-xl font-semibold text-gray-800 text-center lg:text-left">
-                Dashboard
-              </h1>
-            </div>
             <div className="w-6 lg:hidden" /> {/* Spacer for mobile */}
           </div>
         </header>
 
         {/* Page content */}
-        <main className="flex-1 overflow-auto p-4">{children}</main>
+        <main className="flex-1 overflow-auto">{children}</main>
       </div>
     </div>
   );

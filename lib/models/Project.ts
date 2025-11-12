@@ -58,11 +58,6 @@ const ProjectSchema = new Schema<IProject>(
   }
 );
 
-// Validate that end_date is after start_date
-ProjectSchema.path("end_date").validate(function (this: IProject, value: Date) {
-  return value >= this.start_date;
-}, "End date must be after start date");
-
 // Index for better query performance
 ProjectSchema.index({ name: 1 });
 ProjectSchema.index({ status: 1 });

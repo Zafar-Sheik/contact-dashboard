@@ -1,10 +1,22 @@
 // app/layout.tsx
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 import Layout from "./components/Layout";
 
 const inter = Inter({ subsets: ["latin"] });
+
+const lastica = localFont({
+  src: [
+    {
+      path: "../public/fonts/Lastica.ttf",
+      weight: "400",
+      style: "normal",
+    },
+  ],
+  variable: "--font-lastica",
+});
 
 export const metadata: Metadata = {
   title: "Dashboard App",
@@ -17,8 +29,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body className={inter.className}>
+    <html lang="en" className={`${inter.className} ${lastica.variable}`}>
+      <body className="font-lastica">
         <Layout>{children}</Layout>
       </body>
     </html>

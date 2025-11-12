@@ -1,35 +1,101 @@
-// app/dashboard/page.tsx
 "use client";
 import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
+import {
+  RefreshCw,
+  Users,
+  ClipboardList,
+  Clock,
+  AlertTriangle,
+  CheckCircle2,
+  Cloud,
+  Code,
+  Database,
+  TrendingUp,
+  Zap,
+  DollarSign,
+} from "lucide-react";
+import {
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  PieChart,
+  Pie,
+  Cell,
+} from "recharts";
 
 interface DashboardStats {
   totalTasks: number;
-  totalStaff: number;
   pendingTasks: number;
   completedTasks: number;
   overdueTasks: number;
+  totalStaff: number;
+  totalBackups: number;
+  totalBackupSize: number;
+  successBackups: number;
+  failedBackups: number;
+  inProgressBackups: number;
+  totalProjects: number;
+  totalBudget: number;
+  activeProjects: number;
+  completedProjects: number;
+  overdueProjects: number;
+  onHoldProjects: number;
+  budgetTotal: number;
+  budgetEntriesCount: number;
+  currentMonthBudget: number;
 }
 
-interface Task {
+interface RecentActivity {
   _id: string;
-  status: string;
-  due_date: string;
+  title: string;
+  description: string;
+  type: "task" | "project" | "backup" | "budget";
+  timestamp: string;
+  status?: string;
 }
 
-interface StaffMember {
+interface BudgetEntry {
   _id: string;
+  category: string;
+  amount: number;
+  month: string;
+  year: number;
+  created_at: string;
+  updated_at: string;
 }
 
 export default function DashboardPage() {
   const [stats, setStats] = useState<DashboardStats>({
     totalTasks: 0,
-    totalStaff: 0,
     pendingTasks: 0,
     completedTasks: 0,
     overdueTasks: 0,
+    totalStaff: 0,
+    totalBackups: 0,
+    totalBackupSize: 0,
+    successBackups: 0,
+    failedBackups: 0,
+    inProgressBackups: 0,
+    totalProjects: 0,
+    totalBudget: 0,
+    activeProjects: 0,
+    completedProjects: 0,
+    overdueProjects: 0,
+    onHoldProjects: 0,
+    budgetTotal: 0,
+    budgetEntriesCount: 0,
+    currentMonthBudget: 0,
   });
+
+  const [recentActivities, setRecentActivities] = useState<RecentActivity[]>(
+    []
+  );
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     fetchDashboardData();
@@ -38,451 +104,627 @@ export default function DashboardPage() {
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
-      setError(null);
-
-      // Fetch tasks and staff members in parallel
-      const [tasksResponse, staffResponse] = await Promise.all([
+      const [
+        tasksResponse,
+        staffResponse,
+        backupsResponse,
+        projectsResponse,
+        budgetResponse,
+      ] = await Promise.all([
         fetch("/api/tasks"),
         fetch("/api/staff-members"),
+        fetch("/api/cloud-backups"),
+        fetch("/api/development-projects"),
+        fetch("/api/budget-tracker"),
       ]);
-
-      if (!tasksResponse.ok || !staffResponse.ok) {
-        throw new Error("Failed to fetch data");
-      }
 
       const tasksData = await tasksResponse.json();
       const staffData = await staffResponse.json();
+      const backupsData = await backupsResponse.json();
+      const projectsData = await projectsResponse.json();
+      const budgetData = await budgetResponse.json();
 
-      if (!tasksData.success || !staffData.data) {
-        throw new Error("Invalid data format");
-      }
-
-      const tasks: Task[] = tasksData.data || [];
-      const staffMembers: StaffMember[] = staffData.data || [];
-
-      // Calculate statistics
+      // Process tasks data
+      const tasks = tasksData.data || [];
       const totalTasks = tasks.length;
-      const totalStaff = staffMembers.length;
-
       const pendingTasks = tasks.filter(
-        (task) => task.status === "To Do" || task.status === "In Progress"
+        (t: any) => t.status === "To Do" || t.status === "In Progress"
       ).length;
-
       const completedTasks = tasks.filter(
-        (task) => task.status === "Done"
+        (t: any) => t.status === "Done"
       ).length;
-
-      const overdueTasks = tasks.filter((task) => {
-        const dueDate = new Date(task.due_date);
-        const today = new Date();
-        return dueDate < today && task.status !== "Done";
+      const overdueTasks = tasks.filter((t: any) => {
+        const dueDate = new Date(t.due_date);
+        return dueDate < new Date() && t.status !== "Done";
       }).length;
+
+      // Process other data
+      const staffMembers = staffData.data || [];
+      const backups = backupsData.data || [];
+      const backupStats = backupsData.statistics || {};
+      const projects = projectsData.data || [];
+      const projectStats = projectsData.statistics || {};
+
+      // Process budget data
+      const budgetEntries: BudgetEntry[] = budgetData.data || [];
+      const budgetTotal = budgetData.totalAmount || 0;
+      const budgetEntriesCount = budgetData.count || 0;
+
+      // Calculate current month's budget (assuming current month)
+      const currentMonth = new Date().toLocaleString("default", {
+        month: "long",
+      });
+      const currentYear = new Date().getFullYear();
+      const currentMonthBudget = budgetEntries
+        .filter(
+          (entry) => entry.month === currentMonth && entry.year === currentYear
+        )
+        .reduce((sum, entry) => sum + entry.amount, 0);
 
       setStats({
         totalTasks,
-        totalStaff,
         pendingTasks,
         completedTasks,
         overdueTasks,
+        totalStaff: staffMembers.length,
+        totalBackups: backupStats.totalBackups || 0,
+        totalBackupSize: backupStats.totalSize || 0,
+        successBackups: backupStats.successCount || 0,
+        failedBackups: backupStats.failedCount || 0,
+        inProgressBackups: backupStats.inProgressCount || 0,
+        totalProjects: projectStats.totalProjects || 0,
+        totalBudget: projectStats.totalBudget || 0,
+        activeProjects: projectStats.activeCount || 0,
+        completedProjects: projectStats.completedCount || 0,
+        overdueProjects: projectStats.overdueCount || 0,
+        onHoldProjects: projectStats.onHoldCount || 0,
+        budgetTotal,
+        budgetEntriesCount,
+        currentMonthBudget,
       });
+
+      // Generate recent activities
+      const activities: RecentActivity[] = [
+        ...tasks.slice(0, 2).map((task: any) => ({
+          _id: task._id,
+          title: task.title,
+          description: `Due: ${new Date(task.due_date).toLocaleDateString()}`,
+          type: "task" as const,
+          timestamp: task.due_date,
+          status: task.status,
+        })),
+        ...projects.slice(0, 2).map((project: any) => ({
+          _id: project._id,
+          title: project.name,
+          description: `Lead: ${project.lead?.name || "Unknown"}`,
+          type: "project" as const,
+          timestamp: project.startDate,
+          status: project.status,
+        })),
+        ...backups.slice(0, 1).map((backup: any) => ({
+          _id: backup._id,
+          title: backup.client,
+          description: `Package: ${backup.package}`,
+          type: "backup" as const,
+          timestamp: backup.lastBackup,
+          status: backup.status,
+        })),
+        ...budgetEntries.slice(0, 1).map((entry: BudgetEntry) => ({
+          _id: entry._id,
+          title: `Budget: ${entry.category}`,
+          description: `${entry.month} ${entry.year}`,
+          type: "budget" as const,
+          timestamp: entry.created_at,
+          status: `R${entry.amount.toLocaleString()}`,
+        })),
+      ].sort(
+        (a, b) =>
+          new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+      );
+
+      setRecentActivities(activities);
     } catch (err) {
-      console.error("Error fetching dashboard data:", err);
-      setError("Failed to load dashboard data. Please try again.");
+      console.error(err);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
 
-  const refreshData = () => {
-    fetchDashboardData();
+  const refreshData = async () => {
+    setRefreshing(true);
+    await fetchDashboardData();
+  };
+
+  const completionRate =
+    stats.totalTasks > 0
+      ? Math.round((stats.completedTasks / stats.totalTasks) * 100)
+      : 0;
+
+  const projectCompletionRate =
+    stats.totalProjects > 0
+      ? Math.round((stats.completedProjects / stats.totalProjects) * 100)
+      : 0;
+
+  const backupSuccessRate =
+    stats.totalBackups > 0
+      ? Math.round((stats.successBackups / stats.totalBackups) * 100)
+      : 0;
+
+  // Chart data
+  const taskData = [
+    { name: "Done", value: stats.completedTasks },
+    { name: "Pending", value: stats.pendingTasks },
+    { name: "Overdue", value: stats.overdueTasks },
+  ];
+
+  const projectData = [
+    { name: "Active", value: stats.activeProjects },
+    { name: "Completed", value: stats.completedProjects },
+    { name: "On Hold", value: stats.onHoldProjects },
+  ];
+
+  const COLORS = ["#0066CC", "#0088FE", "#00C49F", "#FFBB28"];
+  const LIGHT_COLORS = {
+    cyan: "#0066CC",
+    blue: "#0088FE",
+    green: "#00A86B",
+    red: "#DC2626",
+    purple: "#7C3AED",
+    yellow: "#D97706",
+  };
+
+  const StatCard = ({
+    title,
+    value,
+    subtitle,
+    icon: Icon,
+    color = "cyan",
+  }: {
+    title: string;
+    value: number | string;
+    subtitle?: string;
+    icon: any;
+    color?: "cyan" | "blue" | "green" | "red" | "purple" | "yellow";
+  }) => {
+    const colorClasses = {
+      cyan: `text-[${LIGHT_COLORS.cyan}] bg-blue-50 border-blue-200`,
+      blue: `text-[${LIGHT_COLORS.blue}] bg-sky-50 border-sky-200`,
+      green: `text-[${LIGHT_COLORS.green}] bg-green-50 border-green-200`,
+      red: `text-[${LIGHT_COLORS.red}] bg-red-50 border-red-200`,
+      purple: `text-[${LIGHT_COLORS.purple}] bg-purple-50 border-purple-200`,
+      yellow: `text-[${LIGHT_COLORS.yellow}] bg-amber-50 border-amber-200`,
+    };
+
+    return (
+      <motion.div
+        whileHover={{ scale: 1.02 }}
+        className={`relative border rounded-xl p-4 shadow-sm hover:shadow-md transition-all duration-300 ${colorClasses[color]} h-full`}
+      >
+        <div className="flex justify-between items-start h-full">
+          <div className="flex-1">
+            <p className="text-xs font-medium opacity-80 uppercase tracking-wider mb-1">
+              {title}
+            </p>
+            <h3 className="text-2xl font-bold text-gray-900 mb-1">{value}</h3>
+            {subtitle && <p className="text-xs text-gray-600">{subtitle}</p>}
+          </div>
+          <div className="p-2 bg-white rounded-lg shadow-xs">
+            <Icon className="w-5 h-5" />
+          </div>
+        </div>
+      </motion.div>
+    );
+  };
+
+  const ActivityItem = ({ activity }: { activity: RecentActivity }) => {
+    const getIcon = () => {
+      switch (activity.type) {
+        case "task":
+          return ClipboardList;
+        case "project":
+          return Code;
+        case "backup":
+          return Cloud;
+        case "budget":
+          return DollarSign;
+        default:
+          return Clock;
+      }
+    };
+
+    const getStatusColor = (status: string) => {
+      switch (status?.toLowerCase()) {
+        case "done":
+        case "completed":
+        case "success":
+          return "text-green-600";
+        case "in progress":
+        case "active":
+          return "text-blue-600";
+        case "failed":
+          return "text-red-600";
+        default:
+          return "text-amber-600";
+      }
+    };
+
+    const Icon = getIcon();
+    const timeAgo = new Date(activity.timestamp).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+    });
+
+    return (
+      <div className="flex items-center gap-3 p-3 rounded-lg bg-white border border-gray-200 hover:border-blue-300 transition-all">
+        <div className="p-1.5 bg-blue-100 rounded">
+          <Icon className="w-3.5 h-3.5 text-blue-600" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-medium text-gray-900 truncate leading-tight">
+            {activity.title}
+          </p>
+          <p className="text-xs text-gray-600 truncate leading-tight">
+            {activity.description}
+          </p>
+        </div>
+        <div className="text-right shrink-0">
+          {activity.status && (
+            <p
+              className={`text-xs font-medium ${getStatusColor(
+                activity.status
+              )} leading-tight`}
+            >
+              {activity.status.split(" ")[0]}
+            </p>
+          )}
+          <p className="text-xs text-gray-500 leading-tight">{timeAgo}</p>
+        </div>
+      </div>
+    );
   };
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="flex flex-col items-center justify-center h-64 space-y-4">
-        <div className="text-red-600 text-lg">{error}</div>
-        <button
-          onClick={refreshData}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-        >
-          Retry
-        </button>
+      <div className="h-screen flex justify-center items-center bg-gray-50">
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
+          className="w-8 h-8 border-3 border-t-transparent border-blue-600 rounded-full"
+        />
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-gray-900">Dashboard Overview</h2>
-        <button
+    <div className="h-screen w-full bg-gray-50 text-gray-900 p-4 overflow-hidden">
+      {/* HEADER BAR */}
+      <div className="flex justify-between items-center mb-4">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-blue-100 rounded-lg">
+            <Zap className="w-5 h-5 text-blue-600" />
+          </div>
+          <div>
+            <h1 className="text-lg font-semibold text-gray-900">
+              System Overview
+            </h1>
+            <p className="text-xs text-gray-600">
+              Real-time performance metrics
+            </p>
+          </div>
+        </div>
+        <motion.button
+          whileTap={{ scale: 0.9 }}
           onClick={refreshData}
-          className="flex items-center space-x-2 bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors"
+          className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-blue-300 bg-white text-blue-700 hover:bg-blue-50 transition-all text-sm shadow-xs"
         >
-          <svg
-            className="w-4 h-4"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+          <RefreshCw
+            className={`w-3.5 h-3.5 ${refreshing ? "animate-spin" : ""}`}
+          />
+          Refresh
+        </motion.button>
+      </div>
+
+      {/* COMPACT MAIN GRID */}
+      <div className="grid grid-cols-12 gap-3 h-[calc(100vh-100px)]">
+        {/* LEFT COLUMN - KEY METRICS */}
+        <div className="col-span-8 grid grid-cols-4 gap-3">
+          {/* TOP ROW - CORE METRICS */}
+          <div className="col-span-1">
+            <StatCard
+              title="Tasks"
+              value={stats.totalTasks}
+              subtitle={`${stats.overdueTasks} overdue`}
+              icon={ClipboardList}
+              color="blue"
             />
-          </svg>
-          <span>Refresh</span>
-        </button>
-      </div>
-
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {/* Total Tasks */}
-        <div className="bg-white p-6 rounded-lg shadow border-l-4 border-blue-500">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Total Tasks</p>
-              <p className="text-3xl font-bold text-gray-900">
-                {stats.totalTasks}
-              </p>
-            </div>
-            <div className="p-3 bg-blue-100 rounded-full">
-              <svg
-                className="w-6 h-6 text-blue-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-                />
-              </svg>
-            </div>
           </div>
-          <div className="mt-2">
-            <span className="text-sm text-gray-500">
-              All tasks in the system
-            </span>
-          </div>
-        </div>
-
-        {/* Staff Members */}
-        <div className="bg-white p-6 rounded-lg shadow border-l-4 border-green-500">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Staff Members</p>
-              <p className="text-3xl font-bold text-gray-900">
-                {stats.totalStaff}
-              </p>
-            </div>
-            <div className="p-3 bg-green-100 rounded-full">
-              <svg
-                className="w-6 h-6 text-green-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"
-                />
-              </svg>
-            </div>
-          </div>
-          <div className="mt-2">
-            <span className="text-sm text-gray-500">Total team members</span>
-          </div>
-        </div>
-
-        {/* Pending Tasks */}
-        <div className="bg-white p-6 rounded-lg shadow border-l-4 border-orange-500">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Pending Tasks</p>
-              <p className="text-3xl font-bold text-gray-900">
-                {stats.pendingTasks}
-              </p>
-            </div>
-            <div className="p-3 bg-orange-100 rounded-full">
-              <svg
-                className="w-6 h-6 text-orange-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-            </div>
-          </div>
-          <div className="mt-2">
-            <span className="text-sm text-gray-500">To Do + In Progress</span>
-          </div>
-        </div>
-
-        {/* Overdue Tasks */}
-        <div className="bg-white p-6 rounded-lg shadow border-l-4 border-red-500">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Overdue Tasks</p>
-              <p className="text-3xl font-bold text-gray-900">
-                {stats.overdueTasks}
-              </p>
-            </div>
-            <div className="p-3 bg-red-100 rounded-full">
-              <svg
-                className="w-6 h-6 text-red-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.35 16.5c-.77.833.192 2.5 1.732 2.5z"
-                />
-              </svg>
-            </div>
-          </div>
-          <div className="mt-2">
-            <span className="text-sm text-gray-500">Past due date</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Additional Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Completion Rate */}
-        <div className="bg-white p-6 rounded-lg shadow">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">
-            Task Completion
-          </h3>
-          <div className="space-y-4">
-            <div>
-              <div className="flex justify-between text-sm text-gray-600 mb-1">
-                <span>Completed</span>
-                <span>
-                  {stats.completedTasks} / {stats.totalTasks}
-                </span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div
-                  className="bg-green-600 h-2 rounded-full transition-all duration-500"
-                  style={{
-                    width:
-                      stats.totalTasks > 0
-                        ? `${(stats.completedTasks / stats.totalTasks) * 100}%`
-                        : "0%",
-                  }}
-                ></div>
-              </div>
-            </div>
-            <div>
-              <div className="flex justify-between text-sm text-gray-600 mb-1">
-                <span>Pending</span>
-                <span>
-                  {stats.pendingTasks} / {stats.totalTasks}
-                </span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div
-                  className="bg-orange-500 h-2 rounded-full transition-all duration-500"
-                  style={{
-                    width:
-                      stats.totalTasks > 0
-                        ? `${(stats.pendingTasks / stats.totalTasks) * 100}%`
-                        : "0%",
-                  }}
-                ></div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Quick Actions */}
-        <div className="bg-white p-6 rounded-lg shadow">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">
-            Quick Actions
-          </h3>
-          <div className="space-y-3">
-            <a
-              href="/tasks"
-              className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
-            >
-              <div className="flex items-center space-x-3">
-                <div className="p-2 bg-blue-100 rounded-lg">
-                  <svg
-                    className="w-5 h-5 text-blue-600"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                    />
-                  </svg>
-                </div>
-                <span className="font-medium text-gray-700">
-                  Create New Task
-                </span>
-              </div>
-              <svg
-                className="w-5 h-5 text-gray-400"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 5l7 7-7 7"
-                />
-              </svg>
-            </a>
-
-            <a
-              href="/staff"
-              className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
-            >
-              <div className="flex items-center space-x-3">
-                <div className="p-2 bg-green-100 rounded-lg">
-                  <svg
-                    className="w-5 h-5 text-green-600"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                    />
-                  </svg>
-                </div>
-                <span className="font-medium text-gray-700">
-                  Add Staff Member
-                </span>
-              </div>
-              <svg
-                className="w-5 h-5 text-gray-400"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 5l7 7-7 7"
-                />
-              </svg>
-            </a>
-
-            <a
-              href="/tasks?overdue=true"
-              className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
-            >
-              <div className="flex items-center space-x-3">
-                <div className="p-2 bg-red-100 rounded-lg">
-                  <svg
-                    className="w-5 h-5 text-red-600"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M13 10V3L4 14h7v7l9-11h-7z"
-                    />
-                  </svg>
-                </div>
-                <span className="font-medium text-gray-700">
-                  View Overdue Tasks
-                </span>
-              </div>
-              <svg
-                className="w-5 h-5 text-gray-400"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 5l7 7-7 7"
-                />
-              </svg>
-            </a>
-          </div>
-        </div>
-      </div>
-
-      {/* Empty State */}
-      {stats.totalTasks === 0 && stats.totalStaff === 0 && (
-        <div className="bg-white p-8 rounded-lg shadow text-center">
-          <svg
-            className="w-16 h-16 text-gray-400 mx-auto mb-4"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+          <div className="col-span-1">
+            <StatCard
+              title="Team"
+              value={stats.totalStaff}
+              subtitle="members"
+              icon={Users}
+              color="cyan"
             />
-          </svg>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">
-            Welcome to your Dashboard!
-          </h3>
-          <p className="text-gray-600 mb-4">
-            Get started by adding staff members and creating tasks.
-          </p>
-          <div className="space-x-4">
-            <a
-              href="/staff"
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-            >
-              Add Staff Member
-            </a>
-            <a
-              href="/tasks"
-              className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
-            >
-              Create Task
-            </a>
+          </div>
+          <div className="col-span-1">
+            <StatCard
+              title="Projects"
+              value={stats.totalProjects}
+              subtitle={`${stats.activeProjects} active`}
+              icon={Code}
+              color="green"
+            />
+          </div>
+          <div className="col-span-1">
+            <StatCard
+              title="Budget Entries"
+              value={stats.budgetEntriesCount}
+              subtitle={`R${stats.budgetTotal.toLocaleString()} total`}
+              icon={DollarSign}
+              color="yellow"
+            />
+          </div>
+
+          {/* TASK CHART */}
+          <div className="col-span-2 rounded-xl p-4 bg-white border border-gray-200 shadow-xs">
+            <h3 className="text-blue-600 font-medium text-sm mb-3 flex items-center gap-1.5">
+              <TrendingUp className="w-3.5 h-3.5" />
+              Task Distribution
+            </h3>
+            <ResponsiveContainer width="100%" height={120}>
+              <BarChart data={taskData}>
+                <XAxis
+                  dataKey="name"
+                  stroke="#6B7280"
+                  fontSize={10}
+                  tickLine={false}
+                  axisLine={false}
+                />
+                <YAxis
+                  stroke="#6B7280"
+                  fontSize={10}
+                  tickLine={false}
+                  axisLine={false}
+                />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "white",
+                    border: "1px solid #E5E7EB",
+                    color: "#1F2937",
+                    fontSize: "12px",
+                    borderRadius: "8px",
+                  }}
+                />
+                <Bar
+                  dataKey="value"
+                  fill={LIGHT_COLORS.blue}
+                  radius={[2, 2, 0, 0]}
+                  barSize={20}
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+
+          {/* COMPLETION RATES */}
+          <div className="col-span-2 rounded-xl p-4 bg-white border border-gray-200 shadow-xs">
+            <h3 className="text-green-600 font-medium text-sm mb-3 flex items-center gap-1.5">
+              <CheckCircle2 className="w-3.5 h-3.5" />
+              Completion Rates
+            </h3>
+            <div className="space-y-3">
+              <div>
+                <div className="flex justify-between text-xs mb-1">
+                  <span className="text-gray-600">Tasks</span>
+                  <span className="text-blue-600 font-medium">
+                    {completionRate}%
+                  </span>
+                </div>
+                <div className="h-1.5 w-full bg-gray-200 rounded-full overflow-hidden">
+                  <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: `${completionRate}%` }}
+                    className="h-full bg-blue-500 rounded-full"
+                  />
+                </div>
+              </div>
+              <div>
+                <div className="flex justify-between text-xs mb-1">
+                  <span className="text-gray-600">Projects</span>
+                  <span className="text-green-600 font-medium">
+                    {projectCompletionRate}%
+                  </span>
+                </div>
+                <div className="h-1.5 w-full bg-gray-200 rounded-full overflow-hidden">
+                  <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: `${projectCompletionRate}%` }}
+                    className="h-full bg-green-500 rounded-full"
+                  />
+                </div>
+              </div>
+              <div>
+                <div className="flex justify-between text-xs mb-1">
+                  <span className="text-gray-600">Backups</span>
+                  <span className="text-purple-600 font-medium">
+                    {backupSuccessRate}%
+                  </span>
+                </div>
+                <div className="h-1.5 w-full bg-gray-200 rounded-full overflow-hidden">
+                  <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: `${backupSuccessRate}%` }}
+                    className="h-full bg-purple-500 rounded-full"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* BUDGET & ALERTS */}
+          <div className="col-span-4 grid grid-cols-2 gap-3">
+            <div className="rounded-xl p-4 bg-white border border-yellow-200 shadow-xs">
+              <h3 className="text-yellow-600 font-medium text-sm mb-2 flex items-center gap-1.5">
+                <DollarSign className="w-3.5 h-3.5" />
+                Budget Overview
+              </h3>
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-gray-600">Total Budget</span>
+                  <span className="text-lg font-bold text-gray-900">
+                    R{stats.budgetTotal.toLocaleString()}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-gray-600">This Month</span>
+                  <span className="text-sm font-semibold text-green-600">
+                    R{stats.currentMonthBudget.toLocaleString()}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-gray-600">Entries</span>
+                  <span className="text-sm font-medium text-blue-600">
+                    {stats.budgetEntriesCount}
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div className="rounded-xl p-4 bg-white border border-red-200 shadow-xs">
+              <h3 className="text-red-600 font-medium text-sm mb-2 flex items-center gap-1.5">
+                <AlertTriangle className="w-3.5 h-3.5" />
+                Alerts
+              </h3>
+              <div className="space-y-1.5">
+                <div className="flex justify-between text-xs">
+                  <span className="text-gray-600">Overdue Tasks</span>
+                  <span className="text-red-600 font-bold">
+                    {stats.overdueTasks}
+                  </span>
+                </div>
+                <div className="flex justify-between text-xs">
+                  <span className="text-gray-600">Failed Backups</span>
+                  <span className="text-red-600 font-bold">
+                    {stats.failedBackups}
+                  </span>
+                </div>
+                <div className="flex justify-between text-xs">
+                  <span className="text-gray-600">Overdue Projects</span>
+                  <span className="text-red-600 font-bold">
+                    {stats.overdueProjects}
+                  </span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-      )}
+
+        {/* RIGHT COLUMN - PROJECTS & ACTIVITIES */}
+        <div className="col-span-4 flex flex-col gap-3">
+          {/* PROJECT STATUS */}
+          <div className="flex-1 rounded-xl p-4 bg-white border border-gray-200 shadow-xs">
+            <h3 className="text-blue-600 font-medium text-sm mb-3 flex items-center gap-1.5">
+              <Code className="w-3.5 h-3.5" />
+              Project Status
+            </h3>
+            <ResponsiveContainer width="100%" height={120}>
+              <PieChart>
+                <Pie
+                  data={projectData}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={25}
+                  outerRadius={40}
+                  paddingAngle={1}
+                  dataKey="value"
+                >
+                  {projectData.map((entry, index) => (
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={COLORS[index % COLORS.length]}
+                    />
+                  ))}
+                </Pie>
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "white",
+                    border: "1px solid #E5E7EB",
+                    color: "#1F2937",
+                    fontSize: "12px",
+                    borderRadius: "8px",
+                  }}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+            <div className="grid grid-cols-3 gap-1 mt-3 text-xs text-center">
+              <div>
+                <div className="text-blue-600 font-bold">
+                  {stats.activeProjects}
+                </div>
+                <div className="text-gray-600">Active</div>
+              </div>
+              <div>
+                <div className="text-green-600 font-bold">
+                  {stats.completedProjects}
+                </div>
+                <div className="text-gray-600">Done</div>
+              </div>
+              <div>
+                <div className="text-amber-600 font-bold">
+                  {stats.onHoldProjects}
+                </div>
+                <div className="text-gray-600">Hold</div>
+              </div>
+            </div>
+          </div>
+
+          {/* RECENT ACTIVITIES */}
+          <div className="flex-1 rounded-xl p-4 bg-white border border-gray-200 shadow-xs">
+            <h3 className="text-blue-600 font-medium text-sm mb-3 flex items-center gap-1.5">
+              <Clock className="w-3.5 h-3.5" />
+              Recent Activity
+            </h3>
+            <div className="space-y-2 max-h-[140px] overflow-y-auto">
+              {recentActivities.map((activity) => (
+                <ActivityItem key={activity._id} activity={activity} />
+              ))}
+              {recentActivities.length === 0 && (
+                <p className="text-gray-500 text-center py-4 text-xs">
+                  No recent activities
+                </p>
+              )}
+            </div>
+          </div>
+
+          {/* BACKUP STATUS */}
+          <div className="rounded-xl p-4 bg-white border border-purple-200 shadow-xs">
+            <h3 className="text-purple-600 font-medium text-sm mb-2 flex items-center gap-1.5">
+              <Cloud className="w-3.5 h-3.5" />
+              Backup Health
+            </h3>
+            <div className="grid grid-cols-3 gap-2 text-center">
+              <div>
+                <div className="text-green-600 font-bold text-lg">
+                  {stats.successBackups}
+                </div>
+                <div className="text-gray-600 text-xs">Success</div>
+              </div>
+              <div>
+                <div className="text-amber-600 font-bold text-lg">
+                  {stats.inProgressBackups}
+                </div>
+                <div className="text-gray-600 text-xs">In Progress</div>
+              </div>
+              <div>
+                <div className="text-red-600 font-bold text-lg">
+                  {stats.failedBackups}
+                </div>
+                <div className="text-gray-600 text-xs">Failed</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

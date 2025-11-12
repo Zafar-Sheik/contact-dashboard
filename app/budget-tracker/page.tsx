@@ -1,6 +1,16 @@
 // app/budget-tracker/page.tsx
 "use client";
 import { useState, useEffect } from "react";
+import {
+  Plus,
+  Edit2,
+  Trash2,
+  TrendingUp,
+  Calendar,
+  PieChart,
+  DollarSign,
+  Filter,
+} from "lucide-react";
 
 interface BudgetEntry {
   _id: string;
@@ -17,13 +27,30 @@ export default function BudgetTracker() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [editingEntry, setEditingEntry] = useState<BudgetEntry | null>(null);
+  const [monthFilter, setMonthFilter] = useState<string>("all");
+  const [yearFilter, setYearFilter] = useState<string>("all");
+
   const [formData, setFormData] = useState({
     category: "",
     amount: 0,
     month: "",
     year: new Date().getFullYear(),
   });
-  const [totalBudget, setTotalBudget] = useState(0);
+
+  const months = [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+  ];
 
   useEffect(() => {
     fetchBudgetEntries();
@@ -35,7 +62,6 @@ export default function BudgetTracker() {
       const result = await response.json();
       if (result.success) {
         setBudgetEntries(result.data);
-        setTotalBudget(result.totalAmount);
       }
     } catch (error) {
       console.error("Error fetching budget entries:", error);
@@ -71,7 +97,7 @@ export default function BudgetTracker() {
 
       if (result.success) {
         resetForm();
-        fetchBudgetEntries(); // Refresh the list
+        fetchBudgetEntries();
         alert("Budget entry created successfully!");
       } else {
         alert(`Error: ${result.error}`);
@@ -102,7 +128,7 @@ export default function BudgetTracker() {
 
       if (result.success) {
         resetForm();
-        fetchBudgetEntries(); // Refresh the list
+        fetchBudgetEntries();
         alert("Budget entry updated successfully!");
       } else {
         alert(`Error: ${result.error}`);
@@ -130,7 +156,7 @@ export default function BudgetTracker() {
       const result = await response.json();
 
       if (result.success) {
-        fetchBudgetEntries(); // Refresh the list
+        fetchBudgetEntries();
         alert("Budget entry deleted successfully!");
       } else {
         alert(`Error: ${result.error}`);
@@ -185,8 +211,41 @@ export default function BudgetTracker() {
     }
   };
 
+  // Calculate statistics
+  const filteredEntries = budgetEntries.filter((entry) => {
+    const matchesMonth = monthFilter === "all" || entry.month === monthFilter;
+    const matchesYear =
+      yearFilter === "all" || entry.year.toString() === yearFilter;
+    return matchesMonth && matchesYear;
+  });
+
+  const totalBudget = filteredEntries.reduce(
+    (sum, entry) => sum + entry.amount,
+    0
+  );
+  const averageBudget =
+    filteredEntries.length > 0 ? totalBudget / filteredEntries.length : 0;
+
   const currentMonth = new Date().toLocaleString("default", { month: "long" });
   const currentYear = new Date().getFullYear();
+
+  const uniqueYears = [
+    ...new Set(budgetEntries.map((entry) => entry.year.toString())),
+  ].sort((a, b) => parseInt(b) - parseInt(a));
+
+  const getCategoryColor = (category: string) => {
+    const colors: { [key: string]: string } = {
+      Marketing: "bg-blue-100 text-blue-800 border-blue-200",
+      Development: "bg-green-100 text-green-800 border-green-200",
+      Operations: "bg-purple-100 text-purple-800 border-purple-200",
+      Sales: "bg-orange-100 text-orange-800 border-orange-200",
+      HR: "bg-pink-100 text-pink-800 border-pink-200",
+      IT: "bg-red-100 text-red-800 border-red-200",
+      Training: "bg-indigo-100 text-indigo-800 border-indigo-200",
+      Travel: "bg-teal-100 text-teal-800 border-teal-200",
+    };
+    return colors[category] || "bg-gray-100 text-gray-800 border-gray-200";
+  };
 
   if (loading) {
     return (
@@ -197,107 +256,182 @@ export default function BudgetTracker() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="p-6 space-y-6 bg-gray-50 min-h-screen">
+      {/* Header */}
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-gray-900">Budget Tracker</h2>
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900">Budget Tracker</h2>
+          <p className="text-gray-700 mt-1">
+            Monitor and manage your budget allocations
+          </p>
+        </div>
         <button
           onClick={openCreateModal}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
+          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2 shadow-sm transition-colors"
         >
-          <svg
-            className="w-5 h-5"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-            />
-          </svg>
-          <span>Add New Entry</span>
+          <Plus className="w-4 h-4" />
+          <span>New Entry</span>
         </button>
       </div>
 
-      <div className="bg-white p-6 rounded-lg shadow-md">
-        <h3 className="text-lg font-semibold mb-4">
-          Current Month's Overview ({currentMonth} {currentYear})
-        </h3>
-        <p className="text-3xl font-bold text-gray-900 mb-4">
-          Total Expenses:{" "}
-          {totalBudget.toLocaleString("en-ZA", {
-            style: "currency",
-            currency: "ZAR",
-          })}
-        </p>
-      </div>
-
-      <div className="bg-white p-6 rounded-lg shadow-md">
-        <h3 className="text-lg font-semibold mb-4">Budget Entries</h3>
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Category
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Amount
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Month
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Year
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {budgetEntries.map((entry) => (
-                <tr key={entry._id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    {entry.category}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {entry.amount.toLocaleString("en-ZA", {
-                      style: "currency",
-                      currency: "ZAR",
-                    })}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {entry.month}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {entry.year}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                    <button
-                      onClick={() => openEditModal(entry)}
-                      className="text-blue-600 hover:text-blue-900"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => handleDeleteBudgetEntry(entry._id)}
-                      className="text-red-600 hover:text-red-900"
-                    >
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      {/* Statistics Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <div className="flex items-center gap-3 mb-2">
+            <DollarSign className="w-6 h-6 text-green-600" />
+            <h3 className="text-lg font-semibold text-gray-900">
+              Total Budget
+            </h3>
+          </div>
+          <p className="text-2xl font-bold text-gray-900">
+            {totalBudget.toLocaleString("en-ZA", {
+              style: "currency",
+              currency: "ZAR",
+            })}
+          </p>
+          <p className="text-sm text-gray-600 mt-1">
+            {filteredEntries.length} entries
+          </p>
         </div>
 
-        {budgetEntries.length === 0 && (
-          <div className="text-center py-8 text-gray-500">
-            No budget entries found. Add your first budget entry!
+        <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <div className="flex items-center gap-3 mb-2">
+            <TrendingUp className="w-6 h-6 text-blue-600" />
+            <h3 className="text-lg font-semibold text-gray-900">
+              Average Entry
+            </h3>
+          </div>
+          <p className="text-2xl font-bold text-gray-900">
+            {averageBudget.toLocaleString("en-ZA", {
+              style: "currency",
+              currency: "ZAR",
+            })}
+          </p>
+          <p className="text-sm text-gray-600 mt-1">Per category</p>
+        </div>
+
+        <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <div className="flex items-center gap-3 mb-2">
+            <Calendar className="w-6 h-6 text-purple-600" />
+            <h3 className="text-lg font-semibold text-gray-900">
+              Current Period
+            </h3>
+          </div>
+          <p className="text-2xl font-bold text-gray-900">
+            {currentMonth} {currentYear}
+          </p>
+          <p className="text-sm text-gray-600 mt-1">Active month</p>
+        </div>
+      </div>
+
+      {/* Filters */}
+      <div className="flex gap-4 items-center">
+        <div className="flex items-center gap-2">
+          <Filter className="w-4 h-4 text-gray-700" />
+          <select
+            value={monthFilter}
+            onChange={(e) => setMonthFilter(e.target.value)}
+            className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
+          >
+            <option value="all">All Months</option>
+            {months.map((month) => (
+              <option key={month} value={month}>
+                {month}
+              </option>
+            ))}
+          </select>
+        </div>
+        <select
+          value={yearFilter}
+          onChange={(e) => setYearFilter(e.target.value)}
+          className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
+        >
+          <option value="all">All Years</option>
+          {uniqueYears.map((year) => (
+            <option key={year} value={year}>
+              {year}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {/* Budget Entries Grid */}
+      <div className="grid gap-4">
+        {filteredEntries.map((entry) => (
+          <div
+            key={entry._id}
+            className="bg-white rounded-xl border border-gray-200 p-4 hover:shadow-md transition-shadow"
+          >
+            <div className="flex items-start justify-between">
+              <div className="flex-1">
+                <div className="flex items-center gap-3 mb-2">
+                  <h3 className="font-semibold text-gray-900 text-lg">
+                    {entry.category}
+                  </h3>
+                  <span
+                    className={`px-2 py-1 rounded-full text-xs font-medium border ${getCategoryColor(
+                      entry.category
+                    )}`}
+                  >
+                    {entry.category}
+                  </span>
+                </div>
+                <div className="flex items-center gap-4 text-sm text-gray-700">
+                  <div className="flex items-center gap-1">
+                    <DollarSign className="w-4 h-4 text-gray-500" />
+                    <span className="font-semibold text-lg">
+                      {entry.amount.toLocaleString("en-ZA", {
+                        style: "currency",
+                        currency: "ZAR",
+                      })}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Calendar className="w-4 h-4 text-gray-500" />
+                    <span>
+                      {entry.month} {entry.year}
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 ml-4">
+                <button
+                  onClick={() => openEditModal(entry)}
+                  className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                  title="Edit entry"
+                >
+                  <Edit2 className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => handleDeleteBudgetEntry(entry._id)}
+                  className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                  title="Delete entry"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          </div>
+        ))}
+
+        {filteredEntries.length === 0 && (
+          <div className="text-center py-12 bg-white rounded-xl border border-gray-200">
+            <PieChart className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+            <div className="text-gray-600 mb-2">No budget entries found</div>
+            <p className="text-gray-700 text-sm mb-4">
+              {monthFilter !== "all" || yearFilter !== "all"
+                ? "Try adjusting your filters"
+                : "Get started by adding your first budget entry"}
+            </p>
+            {monthFilter === "all" && yearFilter === "all" && (
+              <button
+                onClick={openCreateModal}
+                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2 mx-auto shadow-sm transition-colors"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Add Budget Entry</span>
+              </button>
+            )}
           </div>
         )}
       </div>
@@ -305,13 +439,14 @@ export default function BudgetTracker() {
       {/* Budget Entry Modal */}
       {isFormOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg max-w-md w-full p-6">
-            <h3 className="text-lg font-semibold mb-4 text-black">
+          <div className="bg-white rounded-xl max-w-md w-full p-6 shadow-xl">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
               {isEditMode ? "Edit Budget Entry" : "Add New Budget Entry"}
             </h3>
             <form onSubmit={handleSubmit} className="space-y-4">
+              {/* Category */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 text-black">
+                <label className="block text-sm font-medium text-gray-900 mb-1">
                   Category
                 </label>
                 <input
@@ -320,12 +455,15 @@ export default function BudgetTracker() {
                   value={formData.category}
                   onChange={handleInputChange}
                   required
-                  className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-black"
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-500"
+                  placeholder="Enter category name"
                 />
               </div>
+
+              {/* Amount */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 text-black">
-                  Amount (R)
+                <label className="block text-sm font-medium text-gray-900 mb-1">
+                  Amount (ZAR)
                 </label>
                 <input
                   type="number"
@@ -335,11 +473,13 @@ export default function BudgetTracker() {
                   required
                   min="0"
                   step="0.01"
-                  className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-black"
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
+
+              {/* Month */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 text-black">
+                <label className="block text-sm font-medium text-gray-900 mb-1">
                   Month
                 </label>
                 <select
@@ -347,33 +487,22 @@ export default function BudgetTracker() {
                   value={formData.month}
                   onChange={handleInputChange}
                   required
-                  className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-black"
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 >
-                  <option value="" className="text-black">
+                  <option value="" className="text-gray-500">
                     Select Month
                   </option>
-                  {[
-                    "January",
-                    "February",
-                    "March",
-                    "April",
-                    "May",
-                    "June",
-                    "July",
-                    "August",
-                    "September",
-                    "October",
-                    "November",
-                    "December",
-                  ].map((month) => (
-                    <option key={month} value={month} className="text-black">
+                  {months.map((month) => (
+                    <option key={month} value={month} className="text-gray-900">
                       {month}
                     </option>
                   ))}
                 </select>
               </div>
+
+              {/* Year */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 text-black">
+                <label className="block text-sm font-medium text-gray-900 mb-1">
                   Year
                 </label>
                 <input
@@ -384,20 +513,22 @@ export default function BudgetTracker() {
                   required
                   min="2000"
                   max="2100"
-                  className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-black"
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
-              <div className="flex justify-end space-x-3 pt-4">
+
+              {/* Buttons */}
+              <div className="flex justify-end gap-3 pt-4">
                 <button
                   type="button"
                   onClick={resetForm}
-                  className="px-4 py-2 text-gray-600 hover:text-gray-800 text-black"
+                  className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                 >
                   {isEditMode ? "Update Entry" : "Add Entry"}
                 </button>

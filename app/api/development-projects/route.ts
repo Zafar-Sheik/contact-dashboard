@@ -1,20 +1,19 @@
-// app/api/projects/route.ts
+// app/api/development-projects/route.ts
 import connectDB from "@/lib/db";
-import Project from "@/lib/models/Project";
+import DevelopmentProject from "@/lib/models/DevelopmentProject";
 import { ProjectStatus } from "@/lib/constants/ProjectConstants";
 import { NextRequest, NextResponse } from "next/server";
 
-// GET all projects with optional filtering
+// GET all development projects with optional filtering
 export async function GET(req: NextRequest) {
   try {
     await connectDB();
 
     const { searchParams } = new URL(req.url);
     const status = searchParams.get("status");
-    const manager = searchParams.get("manager");
+    const lead = searchParams.get("lead");
     const name = searchParams.get("name");
-    const startDate = searchParams.get("startDate");
-    const endDate = searchParams.get("endDate");
+    const technology = searchParams.get("technology");
 
     // Build filter object
     const filter: any = {};
@@ -26,25 +25,21 @@ export async function GET(req: NextRequest) {
       filter.status = status;
     }
 
-    if (manager) {
-      filter.manager = manager;
+    if (lead) {
+      filter.lead = lead;
     }
 
     if (name) {
       filter.name = new RegExp(name, "i");
     }
 
-    if (startDate) {
-      filter.start_date = { $gte: new Date(startDate) };
+    if (technology) {
+      filter.technologies = { $in: [new RegExp(technology, "i")] };
     }
 
-    if (endDate) {
-      filter.end_date = { $lte: new Date(endDate) };
-    }
-
-    const projects = await Project.find(filter)
-      .populate("manager", "name email") // Populate manager details
-      .sort({ created_at: -1, start_date: -1 })
+    const projects = await DevelopmentProject.find(filter)
+      .populate("lead", "name email position") // Populate lead details
+      .sort({ created_at: -1, startDate: -1 })
       .select("-__v");
 
     // Calculate statistics
@@ -73,7 +68,7 @@ export async function GET(req: NextRequest) {
     const today = new Date();
     const overdueCount = projects.filter(
       (project) =>
-        project.status === ProjectStatus.ACTIVE && project.end_date < today
+        project.status === ProjectStatus.ACTIVE && project.endDate < today
     ).length;
 
     return NextResponse.json(
@@ -94,7 +89,7 @@ export async function GET(req: NextRequest) {
       { status: 200 }
     );
   } catch (err) {
-    console.error("Error fetching projects:", err);
+    console.error("Error fetching development projects:", err);
     return NextResponse.json(
       {
         success: false,
@@ -105,7 +100,7 @@ export async function GET(req: NextRequest) {
   }
 }
 
-// CREATE new project
+// CREATE new development project
 export async function POST(req: NextRequest) {
   try {
     await connectDB();
@@ -113,23 +108,32 @@ export async function POST(req: NextRequest) {
     // Validate request body
     const body = await req.json();
 
-    const { name, description, manager, status, budget, start_date, end_date } =
-      body;
+    const {
+      name,
+      description,
+      lead,
+      status,
+      budget,
+      startDate,
+      endDate,
+      technologies,
+      repositoryUrl,
+    } = body;
 
     // Required field validation
-    if (!name || !manager || !start_date || !end_date) {
+    if (!name || !lead || !startDate || !endDate) {
       return NextResponse.json(
         {
           success: false,
-          error: "Name, manager, start date, and end date are required",
+          error: "Name, lead, start date, and end date are required",
         },
         { status: 400 }
       );
     }
 
     // Validate dates
-    const startDate = new Date(start_date);
-    const endDate = new Date(end_date);
+    const startDateObj = new Date(startDate);
+    const endDateObj = new Date(endDate);
 
     // Validate status if provided
     if (status && !Object.values(ProjectStatus).includes(status)) {
@@ -153,19 +157,21 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Create new project
-    const project = await Project.create({
+    // Create new development project
+    const project = await DevelopmentProject.create({
       name,
       description,
-      manager,
+      lead,
       status: status || ProjectStatus.NOT_STARTED,
       budget,
-      start_date: startDate,
-      end_date: endDate,
+      startDate: startDateObj,
+      endDate: endDateObj,
+      technologies: technologies || [],
+      repositoryUrl,
     });
 
-    // Populate manager details in response
-    await project.populate("manager", "name email");
+    // Populate lead details in response
+    await project.populate("lead", "name email position");
 
     // Return without internal fields
     const projectResponse = project.toObject();
@@ -174,13 +180,13 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(
       {
         success: true,
-        message: "Project created successfully",
+        message: "Development project created successfully",
         data: projectResponse,
       },
       { status: 201 }
     );
   } catch (err) {
-    console.error("Error creating project:", err);
+    console.error("Error creating development project:", err);
 
     // Handle mongoose validation errors
     if (err instanceof Error && err.name === "ValidationError") {
@@ -193,12 +199,12 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Handle cast errors (invalid ObjectId for manager)
+    // Handle cast errors (invalid ObjectId for lead)
     if (err instanceof Error && err.name === "CastError") {
       return NextResponse.json(
         {
           success: false,
-          error: "Invalid manager ID format",
+          error: "Invalid lead ID format",
         },
         { status: 400 }
       );
@@ -214,7 +220,7 @@ export async function POST(req: NextRequest) {
   }
 }
 
-// UPDATE project
+// UPDATE development project
 export async function PATCH(req: NextRequest) {
   try {
     await connectDB();
@@ -234,25 +240,25 @@ export async function PATCH(req: NextRequest) {
     }
 
     // Check if project exists
-    const existingProject = await Project.findById(id);
+    const existingProject = await DevelopmentProject.findById(id);
     if (!existingProject) {
       return NextResponse.json(
         {
           success: false,
-          error: "Project not found",
+          error: "Development project not found",
         },
         { status: 404 }
       );
     }
 
     // Validate dates if provided
-    if (updateData.start_date || updateData.end_date) {
-      const startDate = updateData.start_date
-        ? new Date(updateData.start_date)
-        : existingProject.start_date;
-      const endDate = updateData.end_date
-        ? new Date(updateData.end_date)
-        : existingProject.end_date;
+    if (updateData.startDate || updateData.endDate) {
+      const startDate = updateData.startDate
+        ? new Date(updateData.startDate)
+        : existingProject.startDate;
+      const endDate = updateData.endDate
+        ? new Date(updateData.endDate)
+        : existingProject.endDate;
     }
 
     // Validate status if provided
@@ -281,23 +287,27 @@ export async function PATCH(req: NextRequest) {
     }
 
     // Update project
-    const updatedProject = await Project.findByIdAndUpdate(id, updateData, {
-      new: true, // Return updated document
-      runValidators: true, // Run schema validators
-    })
-      .populate("manager", "name email")
+    const updatedProject = await DevelopmentProject.findByIdAndUpdate(
+      id,
+      updateData,
+      {
+        new: true, // Return updated document
+        runValidators: true, // Run schema validators
+      }
+    )
+      .populate("lead", "name email position")
       .select("-__v");
 
     return NextResponse.json(
       {
         success: true,
-        message: "Project updated successfully",
+        message: "Development project updated successfully",
         data: updatedProject,
       },
       { status: 200 }
     );
   } catch (err) {
-    console.error("Error updating project:", err);
+    console.error("Error updating development project:", err);
 
     // Handle mongoose validation errors
     if (err instanceof Error && err.name === "ValidationError") {
@@ -331,7 +341,7 @@ export async function PATCH(req: NextRequest) {
   }
 }
 
-// DELETE project
+// DELETE development project
 export async function DELETE(req: NextRequest) {
   try {
     await connectDB();
@@ -351,29 +361,29 @@ export async function DELETE(req: NextRequest) {
     }
 
     // Check if project exists
-    const existingProject = await Project.findById(id);
+    const existingProject = await DevelopmentProject.findById(id);
     if (!existingProject) {
       return NextResponse.json(
         {
           success: false,
-          error: "Project not found",
+          error: "Development project not found",
         },
         { status: 404 }
       );
     }
 
     // Delete project
-    await Project.findByIdAndDelete(id);
+    await DevelopmentProject.findByIdAndDelete(id);
 
     return NextResponse.json(
       {
         success: true,
-        message: "Project deleted successfully",
+        message: "Development project deleted successfully",
       },
       { status: 200 }
     );
   } catch (err) {
-    console.error("Error deleting project:", err);
+    console.error("Error deleting development project:", err);
 
     // Handle cast errors (invalid ObjectId)
     if (err instanceof Error && err.name === "CastError") {

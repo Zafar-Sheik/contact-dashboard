@@ -35,12 +35,6 @@ const ContractSchema = new Schema<IContract>(
     endDate: {
       type: Date,
       required: [true, "End date is required"],
-      validate: {
-        validator: function (this: IContract, value: Date) {
-          return value >= this.startDate;
-        },
-        message: "End date must be after start date",
-      },
     },
     status: {
       type: String,
