@@ -7,25 +7,13 @@ import {
   ClipboardList,
   Clock,
   AlertTriangle,
-  CheckCircle2,
   Cloud,
   Code,
-  Database,
-  TrendingUp,
-  Zap,
   DollarSign,
+  Calendar,
+  ChevronRight,
 } from "lucide-react";
-import {
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  PieChart,
-  Pie,
-  Cell,
-} from "recharts";
+import { ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 
 interface DashboardStats {
   totalTasks: number;
@@ -56,6 +44,14 @@ interface RecentActivity {
   type: "task" | "project" | "backup" | "budget";
   timestamp: string;
   status?: string;
+}
+
+interface Task {
+  _id: string;
+  title: string;
+  due_date: string;
+  status: string;
+  priority?: string;
 }
 
 interface BudgetEntry {
@@ -94,6 +90,8 @@ export default function DashboardPage() {
   const [recentActivities, setRecentActivities] = useState<RecentActivity[]>(
     []
   );
+  const [pendingTasks, setPendingTasks] = useState<Task[]>([]);
+  const [overdueTasks, setOverdueTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -125,18 +123,19 @@ export default function DashboardPage() {
       const budgetData = await budgetResponse.json();
 
       // Process tasks data
-      const tasks = tasksData.data || [];
+      const tasks: Task[] = tasksData.data || [];
       const totalTasks = tasks.length;
-      const pendingTasks = tasks.filter(
-        (t: any) => t.status === "To Do" || t.status === "In Progress"
-      ).length;
-      const completedTasks = tasks.filter(
-        (t: any) => t.status === "Done"
-      ).length;
-      const overdueTasks = tasks.filter((t: any) => {
+      const pendingTasksList = tasks.filter(
+        (t) => t.status === "To Do" || t.status === "In Progress"
+      );
+      const completedTasks = tasks.filter((t) => t.status === "Done").length;
+      const overdueTasksList = tasks.filter((t) => {
         const dueDate = new Date(t.due_date);
         return dueDate < new Date() && t.status !== "Done";
-      }).length;
+      });
+
+      setPendingTasks(pendingTasksList.slice(0, 3));
+      setOverdueTasks(overdueTasksList.slice(0, 3));
 
       // Process other data
       const staffMembers = staffData.data || [];
@@ -150,7 +149,7 @@ export default function DashboardPage() {
       const budgetTotal = budgetData.totalAmount || 0;
       const budgetEntriesCount = budgetData.count || 0;
 
-      // Calculate current month's budget (assuming current month)
+      // Calculate current month's budget
       const currentMonth = new Date().toLocaleString("default", {
         month: "long",
       });
@@ -163,9 +162,9 @@ export default function DashboardPage() {
 
       setStats({
         totalTasks,
-        pendingTasks,
+        pendingTasks: pendingTasksList.length,
         completedTasks,
-        overdueTasks,
+        overdueTasks: overdueTasksList.length,
         totalStaff: staffMembers.length,
         totalBackups: backupStats.totalBackups || 0,
         totalBackupSize: backupStats.totalSize || 0,
@@ -185,7 +184,7 @@ export default function DashboardPage() {
 
       // Generate recent activities
       const activities: RecentActivity[] = [
-        ...tasks.slice(0, 2).map((task: any) => ({
+        ...tasks.slice(0, 2).map((task) => ({
           _id: task._id,
           title: task.title,
           description: `Due: ${new Date(task.due_date).toLocaleDateString()}`,
@@ -236,86 +235,113 @@ export default function DashboardPage() {
     await fetchDashboardData();
   };
 
-  const completionRate =
-    stats.totalTasks > 0
-      ? Math.round((stats.completedTasks / stats.totalTasks) * 100)
-      : 0;
-
-  const projectCompletionRate =
-    stats.totalProjects > 0
-      ? Math.round((stats.completedProjects / stats.totalProjects) * 100)
-      : 0;
-
-  const backupSuccessRate =
-    stats.totalBackups > 0
-      ? Math.round((stats.successBackups / stats.totalBackups) * 100)
-      : 0;
-
-  // Chart data
-  const taskData = [
-    { name: "Done", value: stats.completedTasks },
-    { name: "Pending", value: stats.pendingTasks },
-    { name: "Overdue", value: stats.overdueTasks },
-  ];
-
   const projectData = [
     { name: "Active", value: stats.activeProjects },
     { name: "Completed", value: stats.completedProjects },
     { name: "On Hold", value: stats.onHoldProjects },
   ];
 
-  const COLORS = ["#0066CC", "#0088FE", "#00C49F", "#FFBB28"];
-  const LIGHT_COLORS = {
-    cyan: "#0066CC",
-    blue: "#0088FE",
-    green: "#00A86B",
-    red: "#DC2626",
-    purple: "#7C3AED",
-    yellow: "#D97706",
-  };
+  const COLORS = ["#3B82F6", "#10B981", "#F59E0B", "#EF4444"];
 
   const StatCard = ({
     title,
     value,
     subtitle,
     icon: Icon,
-    color = "cyan",
+    color = "blue",
   }: {
     title: string;
     value: number | string;
     subtitle?: string;
     icon: any;
-    color?: "cyan" | "blue" | "green" | "red" | "purple" | "yellow";
+    color?: "red" | "orange" | "green" | "blue" | "purple" | "indigo";
   }) => {
     const colorClasses = {
-      cyan: `text-[${LIGHT_COLORS.cyan}] bg-blue-50 border-blue-200`,
-      blue: `text-[${LIGHT_COLORS.blue}] bg-sky-50 border-sky-200`,
-      green: `text-[${LIGHT_COLORS.green}] bg-green-50 border-green-200`,
-      red: `text-[${LIGHT_COLORS.red}] bg-red-50 border-red-200`,
-      purple: `text-[${LIGHT_COLORS.purple}] bg-purple-50 border-purple-200`,
-      yellow: `text-[${LIGHT_COLORS.yellow}] bg-amber-50 border-amber-200`,
+      red: "text-red-600 bg-red-50 border-red-100",
+      orange: "text-orange-600 bg-orange-50 border-orange-100",
+      green: "text-green-600 bg-green-50 border-green-100",
+      blue: "text-blue-600 bg-blue-50 border-blue-100",
+      purple: "text-purple-600 bg-purple-50 border-purple-100",
+      indigo: "text-indigo-600 bg-indigo-50 border-indigo-100",
     };
 
     return (
       <motion.div
         whileHover={{ scale: 1.02 }}
-        className={`relative border rounded-xl p-4 shadow-sm hover:shadow-md transition-all duration-300 ${colorClasses[color]} h-full`}
+        className={`relative rounded-2xl p-4 border-2 transition-all duration-300 ${colorClasses[color]} h-full`}
       >
         <div className="flex justify-between items-start h-full">
           <div className="flex-1">
-            <p className="text-xs font-medium opacity-80 uppercase tracking-wider mb-1">
+            <p className="text-xs font-semibold opacity-80 uppercase tracking-wider mb-1">
               {title}
             </p>
             <h3 className="text-2xl font-bold text-gray-900 mb-1">{value}</h3>
             {subtitle && <p className="text-xs text-gray-600">{subtitle}</p>}
           </div>
-          <div className="p-2 bg-white rounded-lg shadow-xs">
+          <div className="p-2 bg-white rounded-xl shadow-sm border">
             <Icon className="w-5 h-5" />
           </div>
         </div>
       </motion.div>
     );
   };
+
+  const TaskList = ({
+    tasks,
+    title,
+    color,
+    emptyMessage,
+  }: {
+    tasks: Task[];
+    title: string;
+    color: string;
+    emptyMessage: string;
+  }) => (
+    <div className="bg-white rounded-2xl p-4 border-2 border-gray-100 h-full">
+      <div className="flex items-center justify-between mb-3">
+        <h3 className={`font-bold text-sm flex items-center gap-2 ${color}`}>
+          <ClipboardList className="w-4 h-4" />
+          {title}
+        </h3>
+        <ChevronRight className="w-4 h-4 text-gray-400" />
+      </div>
+      <div className="space-y-2">
+        {tasks.length > 0 ? (
+          tasks.map((task) => (
+            <div
+              key={task._id}
+              className="flex items-center justify-between p-2 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors"
+            >
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-gray-900 truncate">
+                  {task.title}
+                </p>
+                <div className="flex items-center gap-2 mt-1">
+                  <Calendar className="w-3 h-3 text-gray-400" />
+                  <span className="text-xs text-gray-500">
+                    Due: {new Date(task.due_date).toLocaleDateString()}
+                  </span>
+                </div>
+              </div>
+              <span
+                className={`px-2 py-1 rounded-full text-xs font-medium ${
+                  task.status === "In Progress"
+                    ? "bg-blue-100 text-blue-700"
+                    : "bg-gray-100 text-gray-700"
+                }`}
+              >
+                {task.status}
+              </span>
+            </div>
+          ))
+        ) : (
+          <p className="text-gray-500 text-center py-4 text-sm">
+            {emptyMessage}
+          </p>
+        )}
+      </div>
+    </div>
+  );
 
   const ActivityItem = ({ activity }: { activity: RecentActivity }) => {
     const getIcon = () => {
@@ -338,14 +364,14 @@ export default function DashboardPage() {
         case "done":
         case "completed":
         case "success":
-          return "text-green-600";
+          return "text-green-600 bg-green-100";
         case "in progress":
         case "active":
-          return "text-blue-600";
+          return "text-blue-600 bg-blue-100";
         case "failed":
-          return "text-red-600";
+          return "text-red-600 bg-red-100";
         default:
-          return "text-amber-600";
+          return "text-amber-600 bg-amber-100";
       }
     };
 
@@ -356,29 +382,29 @@ export default function DashboardPage() {
     });
 
     return (
-      <div className="flex items-center gap-3 p-3 rounded-lg bg-white border border-gray-200 hover:border-blue-300 transition-all">
-        <div className="p-1.5 bg-blue-100 rounded">
-          <Icon className="w-3.5 h-3.5 text-blue-600" />
+      <div className="flex items-center gap-3 p-3 rounded-xl bg-white border border-gray-200 hover:border-blue-300 transition-all">
+        <div className="p-2 bg-blue-50 rounded-lg">
+          <Icon className="w-4 h-4 text-blue-600" />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium text-gray-900 truncate leading-tight">
+          <p className="text-sm font-medium text-gray-900 truncate">
             {activity.title}
           </p>
-          <p className="text-xs text-gray-600 truncate leading-tight">
+          <p className="text-xs text-gray-600 truncate">
             {activity.description}
           </p>
         </div>
         <div className="text-right shrink-0">
           {activity.status && (
-            <p
-              className={`text-xs font-medium ${getStatusColor(
+            <span
+              className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(
                 activity.status
-              )} leading-tight`}
+              )}`}
             >
               {activity.status.split(" ")[0]}
-            </p>
+            </span>
           )}
-          <p className="text-xs text-gray-500 leading-tight">{timeAgo}</p>
+          <p className="text-xs text-gray-500 mt-1">{timeAgo}</p>
         </div>
       </div>
     );
@@ -386,7 +412,7 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="h-screen flex justify-center items-center bg-gray-50">
+      <div className="h-screen flex justify-center items-center bg-white">
         <motion.div
           animate={{ rotate: 360 }}
           transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
@@ -397,58 +423,41 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="h-screen w-full bg-gray-50 text-gray-900 p-4 overflow-hidden">
-      {/* HEADER BAR */}
-      <div className="flex justify-between items-center mb-4">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-blue-100 rounded-lg">
-            <Zap className="w-5 h-5 text-blue-600" />
-          </div>
-          <div>
-            <h1 className="text-lg font-semibold text-gray-900">
-              System Overview
-            </h1>
-            <p className="text-xs text-gray-600">
-              Real-time performance metrics
-            </p>
-          </div>
-        </div>
+    <div className="min-h-screen w-full bg-white text-gray-900 p-4">
+      {/* Refresh Button */}
+      <div className="flex justify-end mb-4">
         <motion.button
-          whileTap={{ scale: 0.9 }}
+          whileTap={{ scale: 0.95 }}
           onClick={refreshData}
-          className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-blue-300 bg-white text-blue-700 hover:bg-blue-50 transition-all text-sm shadow-xs"
+          className="flex items-center gap-2 px-4 py-2 rounded-xl border-2 border-blue-200 bg-white text-blue-700 hover:bg-blue-50 transition-all text-sm font-medium shadow-sm"
         >
           <RefreshCw
-            className={`w-3.5 h-3.5 ${refreshing ? "animate-spin" : ""}`}
+            className={`w-4 h-4 ${refreshing ? "animate-spin" : ""}`}
           />
           Refresh
         </motion.button>
       </div>
 
-      {/* COMPACT MAIN GRID */}
-      <div className="grid grid-cols-12 gap-3 h-[calc(100vh-100px)]">
-        {/* LEFT COLUMN - KEY METRICS */}
-        <div className="col-span-8 grid grid-cols-4 gap-3">
-          {/* TOP ROW - CORE METRICS */}
-          <div className="col-span-1">
+      {/* Main Grid - Compact Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 h-[calc(100vh-100px)]">
+        {/* Left Column - Stats and Tasks */}
+        <div className="lg:col-span-8 flex flex-col gap-4">
+          {/* Stats Grid - Compact */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
             <StatCard
               title="Tasks"
               value={stats.totalTasks}
               subtitle={`${stats.overdueTasks} overdue`}
               icon={ClipboardList}
-              color="blue"
+              color="red"
             />
-          </div>
-          <div className="col-span-1">
             <StatCard
               title="Team"
               value={stats.totalStaff}
               subtitle="members"
               icon={Users}
-              color="cyan"
+              color="blue"
             />
-          </div>
-          <div className="col-span-1">
             <StatCard
               title="Projects"
               value={stats.totalProjects}
@@ -456,271 +465,133 @@ export default function DashboardPage() {
               icon={Code}
               color="green"
             />
-          </div>
-          <div className="col-span-1">
             <StatCard
-              title="Budget Entries"
+              title="Budget"
               value={stats.budgetEntriesCount}
-              subtitle={`R${stats.budgetTotal.toLocaleString()} total`}
+              subtitle={`R${stats.budgetTotal.toLocaleString()}`}
               icon={DollarSign}
-              color="yellow"
+              color="purple"
             />
           </div>
 
-          {/* TASK CHART */}
-          <div className="col-span-2 rounded-xl p-4 bg-white border border-gray-200 shadow-xs">
-            <h3 className="text-blue-600 font-medium text-sm mb-3 flex items-center gap-1.5">
-              <TrendingUp className="w-3.5 h-3.5" />
-              Task Distribution
-            </h3>
-            <ResponsiveContainer width="100%" height={120}>
-              <BarChart data={taskData}>
-                <XAxis
-                  dataKey="name"
-                  stroke="#6B7280"
-                  fontSize={10}
-                  tickLine={false}
-                  axisLine={false}
-                />
-                <YAxis
-                  stroke="#6B7280"
-                  fontSize={10}
-                  tickLine={false}
-                  axisLine={false}
-                />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "white",
-                    border: "1px solid #E5E7EB",
-                    color: "#1F2937",
-                    fontSize: "12px",
-                    borderRadius: "8px",
-                  }}
-                />
-                <Bar
-                  dataKey="value"
-                  fill={LIGHT_COLORS.blue}
-                  radius={[2, 2, 0, 0]}
-                  barSize={20}
-                />
-              </BarChart>
-            </ResponsiveContainer>
+          {/* Tasks Section - Compact */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 flex-1">
+            <TaskList
+              tasks={pendingTasks}
+              title="Pending Tasks"
+              color="text-blue-600"
+              emptyMessage="No pending tasks"
+            />
+            <TaskList
+              tasks={overdueTasks}
+              title="Overdue Tasks"
+              color="text-red-600"
+              emptyMessage="No overdue tasks"
+            />
           </div>
 
-          {/* COMPLETION RATES */}
-          <div className="col-span-2 rounded-xl p-4 bg-white border border-gray-200 shadow-xs">
-            <h3 className="text-green-600 font-medium text-sm mb-3 flex items-center gap-1.5">
-              <CheckCircle2 className="w-3.5 h-3.5" />
-              Completion Rates
+          {/* Priority Alerts - Compact */}
+          <div className="bg-white rounded-2xl p-4 border-2 border-red-100">
+            <h3 className="text-red-600 font-bold text-sm mb-3 flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4" />
+              Priority Alerts
             </h3>
-            <div className="space-y-3">
-              <div>
-                <div className="flex justify-between text-xs mb-1">
-                  <span className="text-gray-600">Tasks</span>
-                  <span className="text-blue-600 font-medium">
-                    {completionRate}%
-                  </span>
+            <div className="grid grid-cols-3 gap-2">
+              <div className="text-center p-3 bg-red-50 rounded-xl">
+                <div className="text-red-600 font-bold text-lg">
+                  {stats.overdueTasks}
                 </div>
-                <div className="h-1.5 w-full bg-gray-200 rounded-full overflow-hidden">
-                  <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: `${completionRate}%` }}
-                    className="h-full bg-blue-500 rounded-full"
-                  />
+                <div className="text-gray-600 text-xs font-medium">
+                  Overdue Tasks
                 </div>
               </div>
-              <div>
-                <div className="flex justify-between text-xs mb-1">
-                  <span className="text-gray-600">Projects</span>
-                  <span className="text-green-600 font-medium">
-                    {projectCompletionRate}%
-                  </span>
+              <div className="text-center p-3 bg-red-50 rounded-xl">
+                <div className="text-red-600 font-bold text-lg">
+                  {stats.failedBackups}
                 </div>
-                <div className="h-1.5 w-full bg-gray-200 rounded-full overflow-hidden">
-                  <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: `${projectCompletionRate}%` }}
-                    className="h-full bg-green-500 rounded-full"
-                  />
+                <div className="text-gray-600 text-xs font-medium">
+                  Failed Backups
                 </div>
               </div>
-              <div>
-                <div className="flex justify-between text-xs mb-1">
-                  <span className="text-gray-600">Backups</span>
-                  <span className="text-purple-600 font-medium">
-                    {backupSuccessRate}%
-                  </span>
+              <div className="text-center p-3 bg-red-50 rounded-xl">
+                <div className="text-red-600 font-bold text-lg">
+                  {stats.overdueProjects}
                 </div>
-                <div className="h-1.5 w-full bg-gray-200 rounded-full overflow-hidden">
-                  <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: `${backupSuccessRate}%` }}
-                    className="h-full bg-purple-500 rounded-full"
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* BUDGET & ALERTS */}
-          <div className="col-span-4 grid grid-cols-2 gap-3">
-            <div className="rounded-xl p-4 bg-white border border-yellow-200 shadow-xs">
-              <h3 className="text-yellow-600 font-medium text-sm mb-2 flex items-center gap-1.5">
-                <DollarSign className="w-3.5 h-3.5" />
-                Budget Overview
-              </h3>
-              <div className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <span className="text-xs text-gray-600">Total Budget</span>
-                  <span className="text-lg font-bold text-gray-900">
-                    R{stats.budgetTotal.toLocaleString()}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-xs text-gray-600">This Month</span>
-                  <span className="text-sm font-semibold text-green-600">
-                    R{stats.currentMonthBudget.toLocaleString()}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-xs text-gray-600">Entries</span>
-                  <span className="text-sm font-medium text-blue-600">
-                    {stats.budgetEntriesCount}
-                  </span>
-                </div>
-              </div>
-            </div>
-            <div className="rounded-xl p-4 bg-white border border-red-200 shadow-xs">
-              <h3 className="text-red-600 font-medium text-sm mb-2 flex items-center gap-1.5">
-                <AlertTriangle className="w-3.5 h-3.5" />
-                Alerts
-              </h3>
-              <div className="space-y-1.5">
-                <div className="flex justify-between text-xs">
-                  <span className="text-gray-600">Overdue Tasks</span>
-                  <span className="text-red-600 font-bold">
-                    {stats.overdueTasks}
-                  </span>
-                </div>
-                <div className="flex justify-between text-xs">
-                  <span className="text-gray-600">Failed Backups</span>
-                  <span className="text-red-600 font-bold">
-                    {stats.failedBackups}
-                  </span>
-                </div>
-                <div className="flex justify-between text-xs">
-                  <span className="text-gray-600">Overdue Projects</span>
-                  <span className="text-red-600 font-bold">
-                    {stats.overdueProjects}
-                  </span>
+                <div className="text-gray-600 text-xs font-medium">
+                  Overdue Projects
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* RIGHT COLUMN - PROJECTS & ACTIVITIES */}
-        <div className="col-span-4 flex flex-col gap-3">
-          {/* PROJECT STATUS */}
-          <div className="flex-1 rounded-xl p-4 bg-white border border-gray-200 shadow-xs">
-            <h3 className="text-blue-600 font-medium text-sm mb-3 flex items-center gap-1.5">
-              <Code className="w-3.5 h-3.5" />
+        {/* Right Column - Projects & Activities */}
+        <div className="lg:col-span-4 flex flex-col gap-4">
+          {/* Project Status - Compact */}
+          <div className="bg-white rounded-2xl p-4 border-2 border-blue-100 flex-1">
+            <h3 className="text-blue-600 font-bold text-sm mb-3 flex items-center gap-2">
+              <Code className="w-4 h-4" />
               Project Status
             </h3>
-            <ResponsiveContainer width="100%" height={120}>
-              <PieChart>
-                <Pie
-                  data={projectData}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={25}
-                  outerRadius={40}
-                  paddingAngle={1}
-                  dataKey="value"
-                >
-                  {projectData.map((entry, index) => (
-                    <Cell
-                      key={`cell-${index}`}
-                      fill={COLORS[index % COLORS.length]}
-                    />
-                  ))}
-                </Pie>
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "white",
-                    border: "1px solid #E5E7EB",
-                    color: "#1F2937",
-                    fontSize: "12px",
-                    borderRadius: "8px",
-                  }}
-                />
-              </PieChart>
-            </ResponsiveContainer>
-            <div className="grid grid-cols-3 gap-1 mt-3 text-xs text-center">
-              <div>
-                <div className="text-blue-600 font-bold">
+            <div className="h-32 mb-3">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={projectData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={25}
+                    outerRadius={40}
+                    paddingAngle={2}
+                    dataKey="value"
+                  >
+                    {projectData.map((entry, index) => (
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={COLORS[index % COLORS.length]}
+                      />
+                    ))}
+                  </Pie>
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="grid grid-cols-3 gap-2 text-center">
+              <div className="p-2 bg-blue-50 rounded-lg">
+                <div className="text-blue-600 font-bold text-sm">
                   {stats.activeProjects}
                 </div>
-                <div className="text-gray-600">Active</div>
+                <div className="text-gray-600 text-xs font-medium">Active</div>
               </div>
-              <div>
-                <div className="text-green-600 font-bold">
+              <div className="p-2 bg-green-50 rounded-lg">
+                <div className="text-green-600 font-bold text-sm">
                   {stats.completedProjects}
                 </div>
-                <div className="text-gray-600">Done</div>
+                <div className="text-gray-600 text-xs font-medium">Done</div>
               </div>
-              <div>
-                <div className="text-amber-600 font-bold">
+              <div className="p-2 bg-amber-50 rounded-lg">
+                <div className="text-amber-600 font-bold text-sm">
                   {stats.onHoldProjects}
                 </div>
-                <div className="text-gray-600">Hold</div>
+                <div className="text-gray-600 text-xs font-medium">Hold</div>
               </div>
             </div>
           </div>
 
-          {/* RECENT ACTIVITIES */}
-          <div className="flex-1 rounded-xl p-4 bg-white border border-gray-200 shadow-xs">
-            <h3 className="text-blue-600 font-medium text-sm mb-3 flex items-center gap-1.5">
-              <Clock className="w-3.5 h-3.5" />
+          {/* Recent Activities - Compact */}
+          <div className="bg-white rounded-2xl p-4 border-2 border-purple-100 flex-1">
+            <h3 className="text-purple-600 font-bold text-sm mb-3 flex items-center gap-2">
+              <Clock className="w-4 h-4" />
               Recent Activity
             </h3>
-            <div className="space-y-2 max-h-[140px] overflow-y-auto">
+            <div className="space-y-2 h-40 overflow-y-auto">
               {recentActivities.map((activity) => (
                 <ActivityItem key={activity._id} activity={activity} />
               ))}
               {recentActivities.length === 0 && (
-                <p className="text-gray-500 text-center py-4 text-xs">
+                <p className="text-gray-500 text-center py-4 text-sm">
                   No recent activities
                 </p>
               )}
-            </div>
-          </div>
-
-          {/* BACKUP STATUS */}
-          <div className="rounded-xl p-4 bg-white border border-purple-200 shadow-xs">
-            <h3 className="text-purple-600 font-medium text-sm mb-2 flex items-center gap-1.5">
-              <Cloud className="w-3.5 h-3.5" />
-              Backup Health
-            </h3>
-            <div className="grid grid-cols-3 gap-2 text-center">
-              <div>
-                <div className="text-green-600 font-bold text-lg">
-                  {stats.successBackups}
-                </div>
-                <div className="text-gray-600 text-xs">Success</div>
-              </div>
-              <div>
-                <div className="text-amber-600 font-bold text-lg">
-                  {stats.inProgressBackups}
-                </div>
-                <div className="text-gray-600 text-xs">In Progress</div>
-              </div>
-              <div>
-                <div className="text-red-600 font-bold text-lg">
-                  {stats.failedBackups}
-                </div>
-                <div className="text-gray-600 text-xs">Failed</div>
-              </div>
             </div>
           </div>
         </div>

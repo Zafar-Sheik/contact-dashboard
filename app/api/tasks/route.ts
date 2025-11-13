@@ -79,15 +79,6 @@ export async function POST(req: NextRequest) {
 
     // Validate due date is in the future
     const dueDate = new Date(due_date);
-    if (dueDate < new Date()) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Due date must be in the future",
-        },
-        { status: 400 }
-      );
-    }
 
     // Validate status if provided
     if (status && !Object.values(TaskStatus).includes(status)) {
@@ -205,15 +196,7 @@ export async function PATCH(req: NextRequest) {
     // Validate due date if provided
     if (updateData.due_date) {
       const dueDate = new Date(updateData.due_date);
-      if (dueDate < new Date()) {
-        return NextResponse.json(
-          {
-            success: false,
-            error: "Due date must be in the future",
-          },
-          { status: 400 }
-        );
-      }
+
       updateData.due_date = dueDate;
     }
 
