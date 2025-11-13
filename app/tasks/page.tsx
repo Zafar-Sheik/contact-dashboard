@@ -43,6 +43,7 @@ export default function TasksPage() {
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [draggedTask, setDraggedTask] = useState<Task | null>(null);
 
   const [formData, setFormData] = useState({
     title: "",
@@ -153,6 +154,42 @@ export default function TasksPage() {
     }
   };
 
+  const handleDragStart = (task: Task) => {
+    setDraggedTask(task);
+  };
+
+  const handleDragOver = (e: React.DragEvent, status: string) => {
+    e.preventDefault();
+  };
+
+  const handleDrop = async (e: React.DragEvent, newStatus: string) => {
+    e.preventDefault();
+    if (!draggedTask) return;
+
+    if (draggedTask.status !== newStatus) {
+      try {
+        const res = await fetch("/api/tasks", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            id: draggedTask._id,
+            status: newStatus,
+          }),
+        });
+        const result = await res.json();
+        if (result.success) {
+          fetchTasks();
+        } else {
+          alert(result.error);
+        }
+      } catch (err) {
+        console.error(err);
+        alert("Failed to update task status");
+      }
+    }
+    setDraggedTask(null);
+  };
+
   const openEditModal = (task: Task) => {
     setSelectedTask(task);
     setFormData({
@@ -179,22 +216,44 @@ export default function TasksPage() {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case TaskStatus.DONE:
-        return <CheckCircle className="w-4 h-4 text-green-600" />;
+        return <CheckCircle className="w-3 h-3 text-green-600" />;
       case TaskStatus.IN_PROGRESS:
-        return <PlayCircle className="w-4 h-4 text-blue-600" />;
+        return <PlayCircle className="w-3 h-3 text-blue-600" />;
       default:
-        return <Clock className="w-4 h-4 text-gray-600" />;
+        return <Clock className="w-3 h-3 text-gray-600" />;
     }
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case TaskStatus.DONE:
-        return "bg-green-100 text-green-800 border-green-200";
+        return "bg-green-50 border-green-200";
       case TaskStatus.IN_PROGRESS:
-        return "bg-blue-100 text-blue-800 border-blue-200";
+        return "bg-blue-50 border-blue-200";
       default:
-        return "bg-gray-100 text-gray-800 border-gray-200";
+        return "bg-gray-50 border-gray-200";
+    }
+  };
+
+  const getStatusHeaderColor = (status: string) => {
+    switch (status) {
+      case TaskStatus.DONE:
+        return "bg-green-500";
+      case TaskStatus.IN_PROGRESS:
+        return "bg-blue-500";
+      default:
+        return "bg-gray-500";
+    }
+  };
+
+  const getStatusTextColor = (status: string) => {
+    switch (status) {
+      case TaskStatus.DONE:
+        return "text-green-700";
+      case TaskStatus.IN_PROGRESS:
+        return "text-blue-700";
+      default:
+        return "text-gray-700";
     }
   };
 
@@ -208,50 +267,78 @@ export default function TasksPage() {
     return matchesSearch && matchesStatus;
   });
 
+  const tasksByStatus = {
+    [TaskStatus.TODO]: filteredTasks.filter(
+      (task) => task.status === TaskStatus.TODO
+    ),
+    [TaskStatus.IN_PROGRESS]: filteredTasks.filter(
+      (task) => task.status === TaskStatus.IN_PROGRESS
+    ),
+    [TaskStatus.DONE]: filteredTasks.filter(
+      (task) => task.status === TaskStatus.DONE
+    ),
+  };
+
+  const statusColumns = [
+    {
+      status: TaskStatus.TODO,
+      title: "To Do",
+      count: tasksByStatus[TaskStatus.TODO].length,
+    },
+    {
+      status: TaskStatus.IN_PROGRESS,
+      title: "In Progress",
+      count: tasksByStatus[TaskStatus.IN_PROGRESS].length,
+    },
+    {
+      status: TaskStatus.DONE,
+      title: "Done",
+      count: tasksByStatus[TaskStatus.DONE].length,
+    },
+  ];
+
   if (loading)
     return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <div className="flex justify-center items-center h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
       </div>
     );
 
   return (
-    <div className="p-6 space-y-6 bg-gray-50 min-h-screen">
-      {/* Header */}
-      <div className="flex justify-between items-center">
+    <div className="h-screen flex flex-col bg-gray-50 overflow-hidden">
+      {/* Header - Ultra Compact */}
+      <div className="flex justify-between items-center p-3 border-b border-gray-200 bg-white">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Task Management</h2>
-          <p className="text-gray-700 mt-1">
-            Manage and track your team's tasks
-          </p>
+          <h2 className="text-lg font-bold text-gray-900">Task Board</h2>
+          <p className="text-gray-500 text-xs">Drag to update status</p>
         </div>
         <button
           onClick={openCreateModal}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2 shadow-sm transition-colors"
+          className="bg-blue-600 text-white px-3 py-1.5 rounded-lg hover:bg-blue-700 flex items-center gap-1.5 text-sm transition-colors"
         >
-          <Plus className="w-4 h-4" />
+          <Plus className="w-3.5 h-3.5" />
           <span>New Task</span>
         </button>
       </div>
 
-      {/* Filters and Search */}
-      <div className="flex gap-4 items-center">
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 w-4 h-4" />
+      {/* Filters and Search - Ultra Compact */}
+      <div className="flex gap-2 items-center p-3 bg-white border-b border-gray-200">
+        <div className="relative flex-1">
+          <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-500 w-3.5 h-3.5" />
           <input
             type="text"
             placeholder="Search tasks..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 placeholder-gray-600"
+            className="w-full pl-8 pr-3 py-1.5 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500 bg-white"
           />
         </div>
-        <div className="flex items-center gap-2">
-          <Filter className="w-4 h-4 text-gray-700" />
+        <div className="flex items-center gap-1.5">
+          <Filter className="w-3.5 h-3.5 text-gray-700" />
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
+            className="border border-gray-300 rounded px-2 py-1.5 text-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500 bg-white"
           >
             <option value="all">All Status</option>
             {Object.values(TaskStatus).map((status) => (
@@ -263,99 +350,144 @@ export default function TasksPage() {
         </div>
       </div>
 
-      {/* Tasks Grid */}
-      <div className="grid gap-4">
-        {filteredTasks.map((task) => (
+      {/* Kanban Board - Ultra Compact with Individual Column Scrolling */}
+      <div className="flex-1 grid grid-cols-3 gap-2 p-2 overflow-hidden">
+        {statusColumns.map((column) => (
           <div
-            key={task._id}
-            className="bg-white rounded-xl border border-gray-200 p-4 hover:shadow-md transition-shadow"
+            key={column.status}
+            className="flex flex-col h-full min-h-0" // Added min-h-0 for proper flexbox scrolling
+            onDragOver={(e) => handleDragOver(e, column.status)}
+            onDrop={(e) => handleDrop(e, column.status)}
           >
-            <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <div className="flex items-center gap-3 mb-2">
-                  <h3 className="font-semibold text-gray-900 text-lg">
-                    {task.title}
-                  </h3>
-                  <span
-                    className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(
-                      task.status
-                    )}`}
-                  >
-                    {getStatusIcon(task.status)}
-                    {task.status}
-                  </span>
+            {/* Column Header - Ultra Compact */}
+            <div
+              className={`flex items-center justify-between p-2 rounded-t ${getStatusColor(
+                column.status
+              )} border flex-shrink-0`}
+            >
+              <div className="flex items-center gap-2">
+                <div
+                  className={`w-2 h-2 rounded-full ${getStatusHeaderColor(
+                    column.status
+                  )}`}
+                ></div>
+                <h3
+                  className={`font-semibold text-sm ${getStatusTextColor(
+                    column.status
+                  )}`}
+                >
+                  {column.title}
+                </h3>
+              </div>
+              <span
+                className={`px-1.5 py-0.5 rounded text-xs font-medium ${getStatusTextColor(
+                  column.status
+                )} bg-white border`}
+              >
+                {column.count}
+              </span>
+            </div>
+
+            {/* Tasks List - Individual Column Scrolling */}
+            <div
+              className={`flex-1 p-2 space-y-2 border-l border-r border-b rounded-b ${getStatusColor(
+                column.status
+              )} overflow-y-auto min-h-0`}
+            >
+              {tasksByStatus[column.status].map((task) => (
+                <div
+                  key={task._id}
+                  draggable
+                  onDragStart={() => handleDragStart(task)}
+                  className="bg-white rounded border border-gray-200 p-2 hover:shadow-sm transition-all cursor-move flex-shrink-0"
+                >
+                  <div className="flex items-start justify-between mb-1">
+                    <h4 className="font-medium text-gray-900 text-xs leading-tight flex-1 pr-1">
+                      {task.title}
+                    </h4>
+                  </div>
+
+                  {task.description && (
+                    <p className="text-gray-600 text-xs mb-1 line-clamp-1 leading-relaxed">
+                      {task.description}
+                    </p>
+                  )}
+
+                  <div className="space-y-1 mb-1">
+                    <div className="flex items-center gap-1 text-xs text-gray-600">
+                      <User className="w-3 h-3" />
+                      <span className="truncate text-xs">
+                        {task.assignee.name}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1 text-xs text-gray-600">
+                      <Calendar className="w-3 h-3" />
+                      <span className="text-xs">
+                        {new Date(task.due_date).toLocaleDateString()}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-1 border-t border-gray-100">
+                    <div className="flex items-center gap-1">
+                      {getStatusIcon(task.status)}
+                      <span className="text-xs text-gray-500 capitalize">
+                        {task.status.toLowerCase()}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-0.5">
+                      <button
+                        onClick={() => openEditModal(task)}
+                        className="p-0.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                        title="Edit task"
+                      >
+                        <Edit2 className="w-3 h-3" />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteTask(task._id)}
+                        className="p-0.5 text-red-600 hover:bg-red-50 rounded transition-colors"
+                        title="Delete task"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </button>
+                    </div>
+                  </div>
                 </div>
-                {task.description && (
-                  <p className="text-gray-700 mb-3 text-sm">
-                    {task.description}
+              ))}
+
+              {tasksByStatus[column.status].length === 0 && (
+                <div className="text-center py-4 bg-white rounded border-2 border-dashed border-gray-300 flex-shrink-0">
+                  <div className="text-gray-400 text-xs">No tasks</div>
+                  <p className="text-gray-500 text-xs mt-0.5">
+                    Drag tasks here
                   </p>
-                )}
-                <div className="flex items-center gap-4 text-sm text-gray-700">
-                  <div className="flex items-center gap-1">
-                    <User className="w-4 h-4" />
-                    <span>{task.assignee.name}</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Calendar className="w-4 h-4" />
-                    <span>
-                      Due {new Date(task.due_date).toLocaleDateString()}
-                    </span>
-                  </div>
                 </div>
-              </div>
-              <div className="flex items-center gap-2 ml-4">
-                <button
-                  onClick={() => openEditModal(task)}
-                  className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                  title="Edit task"
-                >
-                  <Edit2 className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => handleDeleteTask(task._id)}
-                  className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                  title="Delete task"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              </div>
+              )}
             </div>
           </div>
         ))}
-
-        {filteredTasks.length === 0 && (
-          <div className="text-center py-12 bg-white rounded-xl border border-gray-200">
-            <div className="text-gray-600 mb-2">No tasks found</div>
-            <p className="text-gray-700 text-sm mb-4">
-              {searchTerm || statusFilter !== "all"
-                ? "Try adjusting your search or filters"
-                : "Get started by creating your first task"}
-            </p>
-            {!searchTerm && statusFilter === "all" && (
-              <button
-                onClick={openCreateModal}
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2 mx-auto shadow-sm transition-colors"
-              >
-                <Plus className="w-4 h-4" />
-                <span>Create Task</span>
-              </button>
-            )}
-          </div>
-        )}
       </div>
+
+      {/* No Results State */}
+      {filteredTasks.length === 0 && tasks.length > 0 && (
+        <div className="text-center py-2 bg-white border-t border-gray-200 flex-shrink-0">
+          <div className="text-gray-600 text-xs">
+            No tasks match your filters
+          </div>
+        </div>
+      )}
 
       {/* Create & Edit Modals */}
       {(showCreateModal || (showEditModal && selectedTask)) && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl max-w-md w-full p-6 shadow-xl">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+          <div className="bg-white rounded-lg max-w-md w-full p-4 shadow-xl">
+            <h3 className="text-base font-semibold text-gray-900 mb-3">
               {showCreateModal ? "Create New Task" : "Edit Task"}
             </h3>
             <form
               onSubmit={showCreateModal ? handleCreateTask : handleUpdateTask}
-              className="space-y-4"
+              className="space-y-3"
             >
-              {/* Title */}
               <div>
                 <label className="block text-sm font-medium text-gray-900 mb-1">
                   Title
@@ -367,12 +499,11 @@ export default function TasksPage() {
                   onChange={(e) =>
                     setFormData({ ...formData, title: e.target.value })
                   }
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-500"
+                  className="w-full rounded border border-gray-300 px-2 py-1.5 text-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                   placeholder="Enter task title"
                 />
               </div>
 
-              {/* Description */}
               <div>
                 <label className="block text-sm font-medium text-gray-900 mb-1">
                   Description
@@ -382,13 +513,12 @@ export default function TasksPage() {
                   onChange={(e) =>
                     setFormData({ ...formData, description: e.target.value })
                   }
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-500"
-                  rows={3}
+                  className="w-full rounded border border-gray-300 px-2 py-1.5 text-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                  rows={2}
                   placeholder="Enter task description"
                 />
               </div>
 
-              {/* Assignee */}
               <div>
                 <label className="block text-sm font-medium text-gray-900 mb-1">
                   Assignee
@@ -399,24 +529,17 @@ export default function TasksPage() {
                   onChange={(e) =>
                     setFormData({ ...formData, assignee: e.target.value })
                   }
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full rounded border border-gray-300 px-2 py-1.5 text-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                 >
-                  <option value="" className="text-gray-500">
-                    Select a staff member
-                  </option>
+                  <option value="">Select a staff member</option>
                   {staffMembers.map((member) => (
-                    <option
-                      key={member._id}
-                      value={member._id}
-                      className="text-gray-900"
-                    >
+                    <option key={member._id} value={member._id}>
                       {member.name} - {member.email}
                     </option>
                   ))}
                 </select>
               </div>
 
-              {/* Due Date */}
               <div>
                 <label className="block text-sm font-medium text-gray-900 mb-1">
                   Due Date
@@ -428,11 +551,10 @@ export default function TasksPage() {
                   onChange={(e) =>
                     setFormData({ ...formData, due_date: e.target.value })
                   }
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full rounded border border-gray-300 px-2 py-1.5 text-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
 
-              {/* Status */}
               <div>
                 <label className="block text-sm font-medium text-gray-900 mb-1">
                   Status
@@ -445,35 +567,30 @@ export default function TasksPage() {
                       status: e.target.value as TaskStatus,
                     })
                   }
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full rounded border border-gray-300 px-2 py-1.5 text-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                 >
                   {Object.values(TaskStatus).map((status) => (
-                    <option
-                      key={status}
-                      value={status}
-                      className="text-gray-900"
-                    >
+                    <option key={status} value={status}>
                       {status}
                     </option>
                   ))}
                 </select>
               </div>
 
-              {/* Buttons */}
-              <div className="flex justify-end gap-3 pt-4">
+              <div className="flex justify-end gap-2 pt-3">
                 <button
                   type="button"
                   onClick={() => {
                     setShowCreateModal(false);
                     setShowEditModal(false);
                   }}
-                  className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                  className="px-3 py-1.5 text-gray-700 bg-gray-100 rounded hover:bg-gray-200 transition-colors text-sm"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  className="px-3 py-1.5 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors text-sm"
                 >
                   {showCreateModal ? "Create Task" : "Update Task"}
                 </button>
