@@ -8,10 +8,6 @@ import {
   Edit2,
   Trash2,
   Search,
-  Filter,
-  Calendar,
-  User,
-  DollarSign,
   CheckCircle,
   Clock,
   AlertTriangle,
@@ -93,8 +89,8 @@ export default function ProjectsPage() {
     end_date: "",
   });
 
-  // Fetch projects
-  const fetchProjects = async () => {
+  // Fetch projects with retry logic
+  const fetchProjects = async (retryCount = 0) => {
     try {
       setLoading(true);
       const queryParams = new URLSearchParams();
@@ -110,18 +106,36 @@ export default function ProjectsPage() {
       }
 
       const response = await fetch(`/api/projects?${queryParams}`);
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
       const result: ApiResponse = await response.json();
 
       if (result.success) {
-        setProjects(result.data);
-        setStatistics(result.statistics);
+        setProjects(result.data || []);
+        setStatistics(result.statistics || null);
         setError(null);
       } else {
-        setError(result.error || "Failed to fetch projects");
+        throw new Error(result.error || "Failed to fetch projects");
       }
     } catch (err) {
-      setError("Failed to fetch projects");
       console.error("Error fetching projects:", err);
+
+      // Retry logic for initial load
+      if (retryCount < 2) {
+        console.log(`Retrying fetch... Attempt ${retryCount + 1}`);
+        setTimeout(
+          () => fetchProjects(retryCount + 1),
+          1000 * (retryCount + 1)
+        );
+        return;
+      }
+
+      setError("Failed to load projects. Please try refreshing the page.");
+      setProjects([]);
+      setStatistics(null);
     } finally {
       setLoading(false);
     }
@@ -131,6 +145,11 @@ export default function ProjectsPage() {
   const fetchStaffMembers = async () => {
     try {
       const response = await fetch("/api/staff-members");
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
       const result: StaffApiResponse = await response.json();
 
       if (result.data) {
@@ -185,6 +204,10 @@ export default function ProjectsPage() {
         }),
       });
 
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
       const result = await response.json();
 
       if (result.success) {
@@ -193,10 +216,10 @@ export default function ProjectsPage() {
         fetchProjects();
         setError(null);
       } else {
-        setError(result.error || "Failed to create project");
+        throw new Error(result.error || "Failed to create project");
       }
     } catch (err) {
-      setError("Failed to create project");
+      setError(err instanceof Error ? err.message : "Failed to create project");
       console.error("Error creating project:", err);
     }
   };
@@ -226,6 +249,10 @@ export default function ProjectsPage() {
         }),
       });
 
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
       const result = await response.json();
 
       if (result.success) {
@@ -234,10 +261,10 @@ export default function ProjectsPage() {
         fetchProjects();
         setError(null);
       } else {
-        setError(result.error || "Failed to update project");
+        throw new Error(result.error || "Failed to update project");
       }
     } catch (err) {
-      setError("Failed to update project");
+      setError(err instanceof Error ? err.message : "Failed to update project");
       console.error("Error updating project:", err);
     }
   };
@@ -260,16 +287,20 @@ export default function ProjectsPage() {
         body: JSON.stringify({ id }),
       });
 
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
       const result = await response.json();
 
       if (result.success) {
         fetchProjects();
         setError(null);
       } else {
-        setError(result.error || "Failed to delete project");
+        throw new Error(result.error || "Failed to delete project");
       }
     } catch (err) {
-      setError("Failed to delete project");
+      setError(err instanceof Error ? err.message : "Failed to delete project");
       console.error("Error deleting project:", err);
     }
   };
@@ -370,7 +401,7 @@ export default function ProjectsPage() {
     setManagerFilter("all");
   };
 
-  // Filter projects client-side for search (since API only supports name search)
+  // Filter projects client-side for search
   const filteredProjects = projects.filter((project) => {
     const matchesSearch =
       project.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -384,7 +415,7 @@ export default function ProjectsPage() {
     return matchesSearch && matchesStatus && matchesManager;
   });
 
-  if (loading && projects.length === 0) {
+  if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
@@ -421,6 +452,12 @@ export default function ProjectsPage() {
               <h3 className="text-sm font-medium text-red-800">Error</h3>
               <p className="text-sm text-red-700 mt-1">{error}</p>
             </div>
+            <button
+              onClick={() => setError(null)}
+              className="ml-auto text-red-600 hover:text-red-800"
+            >
+              ✕
+            </button>
           </div>
         </div>
       )}
@@ -454,7 +491,7 @@ export default function ProjectsPage() {
 
           <div className="bg-white rounded-xl border border-gray-200 p-6">
             <div className="flex items-center gap-3 mb-2">
-              <DollarSign className="w-6 h-6 text-purple-600" />
+              <Target className="w-6 h-6 text-purple-600" />
               <h3 className="text-lg font-semibold text-gray-900">
                 Total Budget
               </h3>
@@ -594,7 +631,7 @@ export default function ProjectsPage() {
 
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm text-gray-700">
                     <div className="flex items-center gap-2">
-                      <User className="w-4 h-4 text-gray-500" />
+                      <Target className="w-4 h-4 text-gray-500" />
                       <div>
                         <span className="font-medium text-gray-900">
                           Manager:
@@ -606,7 +643,7 @@ export default function ProjectsPage() {
                     </div>
 
                     <div className="flex items-center gap-2">
-                      <Calendar className="w-4 h-4 text-gray-500" />
+                      <Clock className="w-4 h-4 text-gray-500" />
                       <div>
                         <span className="font-medium text-gray-900">
                           Timeline:
@@ -619,7 +656,7 @@ export default function ProjectsPage() {
                     </div>
 
                     <div className="flex items-center gap-2">
-                      <DollarSign className="w-4 h-4 text-gray-500" />
+                      <TrendingUp className="w-4 h-4 text-gray-500" />
                       <div>
                         <span className="font-medium text-gray-900">
                           Budget:
@@ -633,7 +670,7 @@ export default function ProjectsPage() {
                     </div>
 
                     <div className="flex items-center gap-2">
-                      <Clock className="w-4 h-4 text-gray-500" />
+                      <AlertTriangle className="w-4 h-4 text-gray-500" />
                       <div>
                         <span className="font-medium text-gray-900">
                           Status:

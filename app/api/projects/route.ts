@@ -4,50 +4,62 @@ import Project from "@/lib/models/Project";
 import { ProjectStatus } from "@/lib/constants/ProjectConstants";
 import { NextRequest, NextResponse } from "next/server";
 
+// Helper function to handle database connection with retry
+async function ensureDatabaseConnection() {
+  try {
+    await connectDB();
+    return true;
+  } catch (error) {
+    console.error("Database connection failed:", error);
+    return false;
+  }
+}
+
 // GET all projects with optional filtering
 export async function GET(req: NextRequest) {
   try {
-    await connectDB();
+    const isConnected = await ensureDatabaseConnection();
+    if (!isConnected) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Database connection failed",
+        },
+        { status: 500 }
+      );
+    }
 
     const { searchParams } = new URL(req.url);
     const status = searchParams.get("status");
     const manager = searchParams.get("manager");
     const name = searchParams.get("name");
-    const startDate = searchParams.get("startDate");
-    const endDate = searchParams.get("endDate");
 
     // Build filter object
     const filter: any = {};
 
     if (
       status &&
+      status !== "all" &&
       Object.values(ProjectStatus).includes(status as ProjectStatus)
     ) {
       filter.status = status;
     }
 
-    if (manager) {
+    if (manager && manager !== "all") {
       filter.manager = manager;
     }
 
     if (name) {
-      filter.name = new RegExp(name, "i");
-    }
-
-    if (startDate) {
-      filter.start_date = { $gte: new Date(startDate) };
-    }
-
-    if (endDate) {
-      filter.end_date = { $lte: new Date(endDate) };
+      filter.name = { $regex: name, $options: "i" };
     }
 
     const projects = await Project.find(filter)
-      .populate("manager", "name email") // Populate manager details
+      .populate("manager", "name email position department") // Populate manager details
       .sort({ created_at: -1, start_date: -1 })
-      .select("-__v");
+      .select("-__v")
+      .lean(); // Use lean for better performance
 
-    // Calculate statistics
+    // Calculate statistics with safe defaults
     const totalProjects = projects.length;
     const totalBudget = projects.reduce(
       (sum, project) => sum + (project.budget || 0),
@@ -73,7 +85,8 @@ export async function GET(req: NextRequest) {
     const today = new Date();
     const overdueCount = projects.filter(
       (project) =>
-        project.status === ProjectStatus.ACTIVE && project.end_date < today
+        project.status === ProjectStatus.ACTIVE &&
+        new Date(project.end_date) < today
     ).length;
 
     return NextResponse.json(
@@ -99,6 +112,7 @@ export async function GET(req: NextRequest) {
       {
         success: false,
         error: "Internal server error",
+        message: err instanceof Error ? err.message : "Unknown error occurred",
       },
       { status: 500 }
     );
@@ -108,7 +122,16 @@ export async function GET(req: NextRequest) {
 // CREATE new project
 export async function POST(req: NextRequest) {
   try {
-    await connectDB();
+    const isConnected = await ensureDatabaseConnection();
+    if (!isConnected) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Database connection failed",
+        },
+        { status: 500 }
+      );
+    }
 
     // Validate request body
     const body = await req.json();
@@ -131,6 +154,16 @@ export async function POST(req: NextRequest) {
     const startDate = new Date(start_date);
     const endDate = new Date(end_date);
 
+    if (startDate >= endDate) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "End date must be after start date",
+        },
+        { status: 400 }
+      );
+    }
+
     // Validate status if provided
     if (status && !Object.values(ProjectStatus).includes(status)) {
       return NextResponse.json(
@@ -143,11 +176,11 @@ export async function POST(req: NextRequest) {
     }
 
     // Validate budget if provided
-    if (budget !== undefined && budget < 0) {
+    if (budget !== undefined && (isNaN(budget) || budget < 0)) {
       return NextResponse.json(
         {
           success: false,
-          error: "Budget cannot be negative",
+          error: "Budget must be a positive number",
         },
         { status: 400 }
       );
@@ -155,17 +188,17 @@ export async function POST(req: NextRequest) {
 
     // Create new project
     const project = await Project.create({
-      name,
-      description,
+      name: name.trim(),
+      description: description?.trim(),
       manager,
       status: status || ProjectStatus.NOT_STARTED,
-      budget,
+      budget: budget ? parseFloat(budget) : undefined,
       start_date: startDate,
       end_date: endDate,
     });
 
     // Populate manager details in response
-    await project.populate("manager", "name email");
+    await project.populate("manager", "name email position department");
 
     // Return without internal fields
     const projectResponse = project.toObject();
@@ -204,10 +237,22 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Handle duplicate key errors
+    if (err instanceof Error && err.message.includes("E11000")) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "A project with this name already exists",
+        },
+        { status: 400 }
+      );
+    }
+
     return NextResponse.json(
       {
         success: false,
         error: "Internal server error",
+        message: err instanceof Error ? err.message : "Unknown error occurred",
       },
       { status: 500 }
     );
@@ -217,7 +262,16 @@ export async function POST(req: NextRequest) {
 // UPDATE project
 export async function PATCH(req: NextRequest) {
   try {
-    await connectDB();
+    const isConnected = await ensureDatabaseConnection();
+    if (!isConnected) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Database connection failed",
+        },
+        { status: 500 }
+      );
+    }
 
     // Validate request body
     const body = await req.json();
@@ -253,6 +307,16 @@ export async function PATCH(req: NextRequest) {
       const endDate = updateData.end_date
         ? new Date(updateData.end_date)
         : existingProject.end_date;
+
+      if (startDate >= endDate) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: "End date must be after start date",
+          },
+          { status: 400 }
+        );
+      }
     }
 
     // Validate status if provided
@@ -270,22 +334,31 @@ export async function PATCH(req: NextRequest) {
     }
 
     // Validate budget if provided
-    if (updateData.budget !== undefined && updateData.budget < 0) {
+    if (
+      updateData.budget !== undefined &&
+      (isNaN(updateData.budget) || updateData.budget < 0)
+    ) {
       return NextResponse.json(
         {
           success: false,
-          error: "Budget cannot be negative",
+          error: "Budget must be a positive number",
         },
         { status: 400 }
       );
     }
+
+    // Clean update data
+    if (updateData.name) updateData.name = updateData.name.trim();
+    if (updateData.description)
+      updateData.description = updateData.description.trim();
+    if (updateData.budget) updateData.budget = parseFloat(updateData.budget);
 
     // Update project
     const updatedProject = await Project.findByIdAndUpdate(id, updateData, {
       new: true, // Return updated document
       runValidators: true, // Run schema validators
     })
-      .populate("manager", "name email")
+      .populate("manager", "name email position department")
       .select("-__v");
 
     return NextResponse.json(
@@ -321,10 +394,22 @@ export async function PATCH(req: NextRequest) {
       );
     }
 
+    // Handle duplicate key errors
+    if (err instanceof Error && err.message.includes("E11000")) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "A project with this name already exists",
+        },
+        { status: 400 }
+      );
+    }
+
     return NextResponse.json(
       {
         success: false,
         error: "Internal server error",
+        message: err instanceof Error ? err.message : "Unknown error occurred",
       },
       { status: 500 }
     );
@@ -334,7 +419,16 @@ export async function PATCH(req: NextRequest) {
 // DELETE project
 export async function DELETE(req: NextRequest) {
   try {
-    await connectDB();
+    const isConnected = await ensureDatabaseConnection();
+    if (!isConnected) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Database connection failed",
+        },
+        { status: 500 }
+      );
+    }
 
     // Validate request body
     const body = await req.json();
@@ -390,6 +484,7 @@ export async function DELETE(req: NextRequest) {
       {
         success: false,
         error: "Internal server error",
+        message: err instanceof Error ? err.message : "Unknown error occurred",
       },
       { status: 500 }
     );
