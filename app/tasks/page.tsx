@@ -363,7 +363,7 @@ export default function TasksPage() {
             <div
               className={`flex items-center justify-between p-2 rounded-t ${getStatusColor(
                 column.status
-              )} border flex-shrink-0`}
+              )} border shrink-0`}
             >
               <div className="flex items-center gap-2">
                 <div
@@ -399,7 +399,7 @@ export default function TasksPage() {
                   key={task._id}
                   draggable
                   onDragStart={() => handleDragStart(task)}
-                  className="bg-white rounded border border-gray-200 p-2 hover:shadow-sm transition-all cursor-move flex-shrink-0"
+                  className="bg-white rounded border border-gray-200 p-2 hover:shadow-sm transition-all cursor-move shrink-0"
                 >
                   <div className="flex items-start justify-between mb-1">
                     <h4 className="font-medium text-gray-900 text-xs leading-tight flex-1 pr-1">
@@ -456,7 +456,7 @@ export default function TasksPage() {
               ))}
 
               {tasksByStatus[column.status].length === 0 && (
-                <div className="text-center py-4 bg-white rounded border-2 border-dashed border-gray-300 flex-shrink-0">
+                <div className="text-center py-4 bg-white rounded border-2 border-dashed border-gray-300 shrink-0">
                   <div className="text-gray-400 text-xs">No tasks</div>
                   <p className="text-gray-500 text-xs mt-0.5">
                     Drag tasks here
@@ -470,7 +470,7 @@ export default function TasksPage() {
 
       {/* No Results State */}
       {filteredTasks.length === 0 && tasks.length > 0 && (
-        <div className="text-center py-2 bg-white border-t border-gray-200 flex-shrink-0">
+        <div className="text-center py-2 bg-white border-t border-gray-200 shrink-0">
           <div className="text-gray-600 text-xs">
             No tasks match your filters
           </div>
