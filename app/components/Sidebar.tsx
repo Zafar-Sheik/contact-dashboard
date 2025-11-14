@@ -3,6 +3,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import Image from "next/image";
+import Logo from "@/public/images/logo.png";
 import {
   LayoutDashboard,
   CheckSquare,
@@ -132,27 +134,22 @@ export default function Sidebar({ isOpen = true, onClose }: SidebarProps) {
         ))}
       </nav>
 
-      {/* User Info */}
-      <div className="p-4 border-t border-gray-700">
-        {!isCollapsed ? (
-          <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-              <User className="w-4 h-4 text-white" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-white truncate">
-                User Name
-              </p>
-              <p className="text-xs text-gray-400 truncate">Administrator</p>
-            </div>
-          </div>
-        ) : (
-          <div className="flex justify-center">
-            <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-              <User className="w-4 h-4 text-white" />
-            </div>
-          </div>
-        )}
+      {/* Logo */}
+      <div className="p-4 bg-white border-r border-gray-700">
+        <div
+          className={`flex ${isCollapsed ? "justify-center" : "justify-start"}`}
+        >
+          <Image
+            src={Logo}
+            alt="Company Logo"
+            width={isCollapsed ? 32 : 120}
+            height={isCollapsed ? 32 : 40}
+            className={`object-contain ${
+              isCollapsed ? "w-10 h-10" : "w-40 h-15"
+            }`}
+            priority
+          />
+        </div>
       </div>
     </div>
   );

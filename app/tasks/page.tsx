@@ -44,6 +44,7 @@ export default function TasksPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [draggedTask, setDraggedTask] = useState<Task | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [formData, setFormData] = useState({
     title: "",
@@ -83,6 +84,9 @@ export default function TasksPage() {
 
   const handleCreateTask = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting) return;
+
+    setIsSubmitting(true);
     try {
       const res = await fetch("/api/tasks", {
         method: "POST",
@@ -105,12 +109,16 @@ export default function TasksPage() {
     } catch (err) {
       console.error(err);
       alert("Failed to create task");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const handleUpdateTask = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedTask) return;
+    if (!selectedTask || isSubmitting) return;
+
+    setIsSubmitting(true);
     try {
       const res = await fetch("/api/tasks", {
         method: "PATCH",
@@ -134,6 +142,8 @@ export default function TasksPage() {
     } catch (err) {
       console.error(err);
       alert("Failed to update task");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -216,45 +226,38 @@ export default function TasksPage() {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case TaskStatus.DONE:
-        return <CheckCircle className="w-3 h-3 text-green-600" />;
+        return <CheckCircle className="w-3 h-3 text-white" />;
       case TaskStatus.IN_PROGRESS:
-        return <PlayCircle className="w-3 h-3 text-blue-600" />;
+        return <PlayCircle className="w-3 h-3 text-white" />;
       default:
-        return <Clock className="w-3 h-3 text-gray-600" />;
+        return <Clock className="w-3 h-3 text-white" />;
     }
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case TaskStatus.DONE:
-        return "bg-green-50 border-green-200";
+        return "bg-green-600 border-green-600 text-white";
       case TaskStatus.IN_PROGRESS:
-        return "bg-blue-50 border-blue-200";
+        return "bg-blue-600 border-blue-600 text-white";
       default:
-        return "bg-gray-50 border-gray-200";
+        return "bg-orange-500 border-orange-500 text-white";
     }
   };
 
   const getStatusHeaderColor = (status: string) => {
     switch (status) {
       case TaskStatus.DONE:
-        return "bg-green-500";
+        return "bg-green-700";
       case TaskStatus.IN_PROGRESS:
-        return "bg-blue-500";
+        return "bg-blue-700";
       default:
-        return "bg-gray-500";
+        return "bg-orange-600";
     }
   };
 
   const getStatusTextColor = (status: string) => {
-    switch (status) {
-      case TaskStatus.DONE:
-        return "text-green-700";
-      case TaskStatus.IN_PROGRESS:
-        return "text-blue-700";
-      default:
-        return "text-gray-700";
-    }
+    return "text-white";
   };
 
   const filteredTasks = tasks.filter((task) => {
@@ -330,7 +333,7 @@ export default function TasksPage() {
             placeholder="Search tasks..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-8 pr-3 py-1.5 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500 bg-white"
+            className="w-full pl-8 pr-3 py-1.5 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 placeholder-gray-600"
           />
         </div>
         <div className="flex items-center gap-1.5">
@@ -338,7 +341,7 @@ export default function TasksPage() {
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="border border-gray-300 rounded px-2 py-1.5 text-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500 bg-white"
+            className="border border-gray-300 rounded px-2 py-1.5 text-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
           >
             <option value="all">All Status</option>
             {Object.values(TaskStatus).map((status) => (
@@ -355,15 +358,15 @@ export default function TasksPage() {
         {statusColumns.map((column) => (
           <div
             key={column.status}
-            className="flex flex-col h-full min-h-0" // Added min-h-0 for proper flexbox scrolling
+            className="flex flex-col h-full min-h-0"
             onDragOver={(e) => handleDragOver(e, column.status)}
             onDrop={(e) => handleDrop(e, column.status)}
           >
-            {/* Column Header - Ultra Compact */}
+            {/* Column Header - Ultra Compact with Colorful Backgrounds */}
             <div
-              className={`flex items-center justify-between p-2 rounded-t ${getStatusColor(
+              className={`flex items-center justify-between p-2 rounded-t border ${getStatusColor(
                 column.status
-              )} border shrink-0`}
+              )} shrink-0`}
             >
               <div className="flex items-center gap-2">
                 <div
@@ -382,7 +385,7 @@ export default function TasksPage() {
               <span
                 className={`px-1.5 py-0.5 rounded text-xs font-medium ${getStatusTextColor(
                   column.status
-                )} bg-white border`}
+                )} bg-white bg-opacity-20 border border-white border-opacity-30`}
               >
                 {column.count}
               </span>
@@ -390,9 +393,7 @@ export default function TasksPage() {
 
             {/* Tasks List - Individual Column Scrolling */}
             <div
-              className={`flex-1 p-2 space-y-2 border-l border-r border-b rounded-b ${getStatusColor(
-                column.status
-              )} overflow-y-auto min-h-0`}
+              className={`flex-1 p-2 space-y-2 border-l border-r border-b rounded-b bg-gray-50 overflow-y-auto min-h-0`}
             >
               {tasksByStatus[column.status].map((task) => (
                 <div
@@ -431,7 +432,11 @@ export default function TasksPage() {
                   <div className="flex items-center justify-between pt-1 border-t border-gray-100">
                     <div className="flex items-center gap-1">
                       {getStatusIcon(task.status)}
-                      <span className="text-xs text-gray-500 capitalize">
+                      <span
+                        className={`text-xs capitalize px-1.5 py-0.5 rounded-full ${getStatusColor(
+                          task.status
+                        )}`}
+                      >
                         {task.status.toLowerCase()}
                       </span>
                     </div>
@@ -499,7 +504,7 @@ export default function TasksPage() {
                   onChange={(e) =>
                     setFormData({ ...formData, title: e.target.value })
                   }
-                  className="w-full rounded border border-gray-300 px-2 py-1.5 text-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full rounded border border-gray-300 px-2 py-1.5 text-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
                   placeholder="Enter task title"
                 />
               </div>
@@ -513,7 +518,7 @@ export default function TasksPage() {
                   onChange={(e) =>
                     setFormData({ ...formData, description: e.target.value })
                   }
-                  className="w-full rounded border border-gray-300 px-2 py-1.5 text-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full rounded border border-gray-300 px-2 py-1.5 text-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
                   rows={2}
                   placeholder="Enter task description"
                 />
@@ -529,7 +534,7 @@ export default function TasksPage() {
                   onChange={(e) =>
                     setFormData({ ...formData, assignee: e.target.value })
                   }
-                  className="w-full rounded border border-gray-300 px-2 py-1.5 text-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full rounded border border-gray-300 px-2 py-1.5 text-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
                 >
                   <option value="">Select a staff member</option>
                   {staffMembers.map((member) => (
@@ -551,7 +556,7 @@ export default function TasksPage() {
                   onChange={(e) =>
                     setFormData({ ...formData, due_date: e.target.value })
                   }
-                  className="w-full rounded border border-gray-300 px-2 py-1.5 text-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full rounded border border-gray-300 px-2 py-1.5 text-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
                 />
               </div>
 
@@ -567,7 +572,7 @@ export default function TasksPage() {
                       status: e.target.value as TaskStatus,
                     })
                   }
-                  className="w-full rounded border border-gray-300 px-2 py-1.5 text-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full rounded border border-gray-300 px-2 py-1.5 text-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
                 >
                   {Object.values(TaskStatus).map((status) => (
                     <option key={status} value={status}>
@@ -585,14 +590,27 @@ export default function TasksPage() {
                     setShowEditModal(false);
                   }}
                   className="px-3 py-1.5 text-gray-700 bg-gray-100 rounded hover:bg-gray-200 transition-colors text-sm"
+                  disabled={isSubmitting}
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-3 py-1.5 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors text-sm"
+                  disabled={isSubmitting}
+                  className="px-3 py-1.5 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors text-sm flex items-center gap-2 min-w-20 justify-center disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {showCreateModal ? "Create Task" : "Update Task"}
+                  {isSubmitting ? (
+                    <>
+                      <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>
+                      <span>
+                        {showCreateModal ? "Creating..." : "Updating..."}
+                      </span>
+                    </>
+                  ) : (
+                    <span>
+                      {showCreateModal ? "Create Task" : "Update Task"}
+                    </span>
+                  )}
                 </button>
               </div>
             </form>

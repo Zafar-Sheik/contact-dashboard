@@ -6,12 +6,13 @@ import {
   Users,
   ClipboardList,
   Clock,
-  AlertTriangle,
   Cloud,
   Code,
   DollarSign,
   Calendar,
   ChevronRight,
+  User,
+  CheckCircle,
 } from "lucide-react";
 import { ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 
@@ -52,6 +53,11 @@ interface Task {
   due_date: string;
   status: string;
   priority?: string;
+  assignee: {
+    _id: string;
+    name: string;
+    email: string;
+  };
 }
 
 interface BudgetEntry {
@@ -94,9 +100,19 @@ export default function DashboardPage() {
   const [overdueTasks, setOverdueTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [completingTask, setCompletingTask] = useState<string | null>(null);
 
   useEffect(() => {
     fetchDashboardData();
+
+    // Set up automatic refresh every 3 minutes (180,000 milliseconds)
+    const refreshInterval = setInterval(() => {
+      console.log("Auto-refreshing dashboard data...");
+      fetchDashboardData();
+    }, 180000); // 3 minutes
+
+    // Cleanup interval on component unmount
+    return () => clearInterval(refreshInterval);
   }, []);
 
   const fetchDashboardData = async () => {
@@ -134,8 +150,8 @@ export default function DashboardPage() {
         return dueDate < new Date() && t.status !== "Done";
       });
 
-      setPendingTasks(pendingTasksList.slice(0, 3));
-      setOverdueTasks(overdueTasksList.slice(0, 3));
+      setPendingTasks(pendingTasksList);
+      setOverdueTasks(overdueTasksList);
 
       // Process other data
       const staffMembers = staffData.data || [];
@@ -235,6 +251,38 @@ export default function DashboardPage() {
     await fetchDashboardData();
   };
 
+  const markTaskAsComplete = async (taskId: string) => {
+    if (!confirm("Are you sure you want to mark this task as complete?")) {
+      return;
+    }
+
+    setCompletingTask(taskId);
+    try {
+      const res = await fetch("/api/tasks", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: taskId,
+          status: "Done",
+        }),
+      });
+
+      const result = await res.json();
+      if (result.success) {
+        // Refresh the dashboard data to reflect the changes
+        await fetchDashboardData();
+        alert("Task marked as complete!");
+      } else {
+        alert(result.error || "Failed to update task");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Failed to update task");
+    } finally {
+      setCompletingTask(null);
+    }
+  };
+
   const projectData = [
     { name: "Active", value: stats.activeProjects },
     { name: "Completed", value: stats.completedProjects },
@@ -291,54 +339,185 @@ export default function DashboardPage() {
     title,
     color,
     emptyMessage,
+    isOverdue = false,
+    isPending = false,
   }: {
     tasks: Task[];
     title: string;
     color: string;
     emptyMessage: string;
+    isOverdue?: boolean;
+    isPending?: boolean;
   }) => (
-    <div className="bg-white rounded-2xl p-4 border-2 border-gray-100 h-full">
-      <div className="flex items-center justify-between mb-3">
-        <h3 className={`font-bold text-sm flex items-center gap-2 ${color}`}>
+    <div
+      className={`rounded-2xl border-2 h-full flex flex-col ${
+        isOverdue
+          ? "bg-white border-red-300"
+          : isPending
+          ? "bg-white border-blue-300"
+          : "bg-white border-gray-100"
+      }`}
+    >
+      <div className="flex items-center justify-between p-4 shrink-0">
+        <h3
+          className={`font-bold text-sm flex items-center gap-2 ${
+            isOverdue
+              ? "text-red-700"
+              : isPending
+              ? "text-blue-700"
+              : "text-gray-700"
+          }`}
+        >
           <ClipboardList className="w-4 h-4" />
-          {title}
+          {title} ({tasks.length})
         </h3>
-        <ChevronRight className="w-4 h-4 text-gray-400" />
+        <ChevronRight
+          className={`w-4 h-4 ${
+            isOverdue
+              ? "text-red-500"
+              : isPending
+              ? "text-blue-500"
+              : "text-gray-400"
+          }`}
+        />
       </div>
-      <div className="space-y-2">
-        {tasks.length > 0 ? (
-          tasks.map((task) => (
-            <div
-              key={task._id}
-              className="flex items-center justify-between p-2 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors"
-            >
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900 truncate">
-                  {task.title}
-                </p>
-                <div className="flex items-center gap-2 mt-1">
-                  <Calendar className="w-3 h-3 text-gray-400" />
-                  <span className="text-xs text-gray-500">
-                    Due: {new Date(task.due_date).toLocaleDateString()}
-                  </span>
-                </div>
-              </div>
-              <span
-                className={`px-2 py-1 rounded-full text-xs font-medium ${
-                  task.status === "In Progress"
-                    ? "bg-blue-100 text-blue-700"
-                    : "bg-gray-100 text-gray-700"
+
+      {/* Taller scrollable tasks container with hidden scrollbar */}
+      <div className="flex-1 overflow-y-auto px-4 pb-4 max-h-96 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+        <div className="space-y-2">
+          {tasks.length > 0 ? (
+            tasks.map((task) => (
+              <motion.div
+                key={task._id}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => markTaskAsComplete(task._id)}
+                className={`flex items-center justify-between p-3 rounded-lg transition-all cursor-pointer ${
+                  isOverdue
+                    ? "bg-red-50 hover:bg-red-100 border border-red-200"
+                    : isPending
+                    ? "bg-blue-50 hover:bg-blue-100 border border-blue-200"
+                    : "bg-gray-50 hover:bg-gray-100"
+                } ${
+                  completingTask === task._id
+                    ? "opacity-50 cursor-not-allowed"
+                    : ""
                 }`}
               >
-                {task.status}
-              </span>
-            </div>
-          ))
-        ) : (
-          <p className="text-gray-500 text-center py-4 text-sm">
-            {emptyMessage}
-          </p>
-        )}
+                <div className="flex-1 min-w-0">
+                  <p
+                    className={`text-sm font-bold truncate ${
+                      isOverdue
+                        ? "text-red-800"
+                        : isPending
+                        ? "text-blue-800"
+                        : "text-gray-900"
+                    }`}
+                  >
+                    {task.title}
+                  </p>
+
+                  {/* Assignee Information */}
+                  <div className="flex items-center gap-1 mt-1">
+                    <User
+                      className={`w-3 h-3 ${
+                        isOverdue
+                          ? "text-red-600"
+                          : isPending
+                          ? "text-blue-600"
+                          : "text-gray-400"
+                      }`}
+                    />
+                    <span
+                      className={`text-xs font-medium ${
+                        isOverdue
+                          ? "text-red-700"
+                          : isPending
+                          ? "text-blue-700"
+                          : "text-gray-500"
+                      }`}
+                    >
+                      {task.assignee?.name || "Unassigned"}
+                    </span>
+                  </div>
+
+                  <div
+                    className={`flex items-center gap-2 mt-1 ${
+                      isOverdue
+                        ? "text-red-600"
+                        : isPending
+                        ? "text-blue-600"
+                        : "text-gray-500"
+                    }`}
+                  >
+                    <Calendar
+                      className={`w-3 h-3 ${
+                        isOverdue
+                          ? "text-red-500"
+                          : isPending
+                          ? "text-blue-500"
+                          : "text-gray-400"
+                      }`}
+                    />
+                    <span
+                      className={`text-xs font-medium ${
+                        isOverdue
+                          ? "text-red-700"
+                          : isPending
+                          ? "text-blue-700"
+                          : "text-gray-600"
+                      }`}
+                    >
+                      Due: {new Date(task.due_date).toLocaleDateString()}
+                    </span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1">
+                  <span
+                    className={`px-2 py-1 rounded-full text-xs font-bold ${
+                      isOverdue
+                        ? "bg-red-100 text-red-800 border border-red-300"
+                        : isPending
+                        ? "bg-blue-100 text-blue-800 border border-blue-300"
+                        : task.status === "In Progress"
+                        ? "bg-blue-100 text-blue-700"
+                        : "bg-gray-100 text-gray-700"
+                    }`}
+                  >
+                    {task.status}
+                  </span>
+                  {completingTask === task._id ? (
+                    <div
+                      className={`w-4 h-4 border-2 rounded-full animate-spin ${
+                        isOverdue
+                          ? "border-red-500 border-t-transparent"
+                          : "border-blue-500 border-t-transparent"
+                      }`}
+                    />
+                  ) : (
+                    <CheckCircle
+                      className={`w-4 h-4 opacity-60 hover:opacity-100 transition-opacity ${
+                        isOverdue ? "text-red-600" : "text-blue-600"
+                      }`}
+                    />
+                  )}
+                </div>
+              </motion.div>
+            ))
+          ) : (
+            <p
+              className={`text-center py-4 text-sm font-medium ${
+                isOverdue
+                  ? "text-red-600"
+                  : isPending
+                  ? "text-blue-600"
+                  : "text-gray-500"
+              }`}
+            >
+              {emptyMessage}
+            </p>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -425,7 +604,10 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen w-full bg-white text-gray-900 p-4">
       {/* Refresh Button */}
-      <div className="flex justify-end mb-4">
+      <div className="flex justify-between items-center mb-4">
+        <div className="text-sm text-gray-500">
+          Auto-refreshes every 3 minutes
+        </div>
         <motion.button
           whileTap={{ scale: 0.95 }}
           onClick={refreshData}
@@ -439,7 +621,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Main Grid - Compact Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 h-[calc(100vh-100px)]">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
         {/* Left Column - Stats and Tasks */}
         <div className="lg:col-span-8 flex flex-col gap-4">
           {/* Stats Grid - Compact */}
@@ -474,61 +656,29 @@ export default function DashboardPage() {
             />
           </div>
 
-          {/* Tasks Section - Compact */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 flex-1">
+          {/* Tasks Section - Taller task cards that fit neatly on screen */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 min-h-[200px]">
             <TaskList
               tasks={pendingTasks}
               title="Pending Tasks"
-              color="text-blue-600"
+              color="text-blue-700"
               emptyMessage="No pending tasks"
+              isPending={true}
             />
             <TaskList
               tasks={overdueTasks}
               title="Overdue Tasks"
-              color="text-red-600"
+              color="text-red-700"
               emptyMessage="No overdue tasks"
+              isOverdue={true}
             />
-          </div>
-
-          {/* Priority Alerts - Compact */}
-          <div className="bg-white rounded-2xl p-4 border-2 border-red-100">
-            <h3 className="text-red-600 font-bold text-sm mb-3 flex items-center gap-2">
-              <AlertTriangle className="w-4 h-4" />
-              Priority Alerts
-            </h3>
-            <div className="grid grid-cols-3 gap-2">
-              <div className="text-center p-3 bg-red-50 rounded-xl">
-                <div className="text-red-600 font-bold text-lg">
-                  {stats.overdueTasks}
-                </div>
-                <div className="text-gray-600 text-xs font-medium">
-                  Overdue Tasks
-                </div>
-              </div>
-              <div className="text-center p-3 bg-red-50 rounded-xl">
-                <div className="text-red-600 font-bold text-lg">
-                  {stats.failedBackups}
-                </div>
-                <div className="text-gray-600 text-xs font-medium">
-                  Failed Backups
-                </div>
-              </div>
-              <div className="text-center p-3 bg-red-50 rounded-xl">
-                <div className="text-red-600 font-bold text-lg">
-                  {stats.overdueProjects}
-                </div>
-                <div className="text-gray-600 text-xs font-medium">
-                  Overdue Projects
-                </div>
-              </div>
-            </div>
           </div>
         </div>
 
         {/* Right Column - Projects & Activities */}
         <div className="lg:col-span-4 flex flex-col gap-4">
           {/* Project Status - Compact */}
-          <div className="bg-white rounded-2xl p-4 border-2 border-blue-100 flex-1">
+          <div className="bg-white rounded-2xl p-4 border-2 border-blue-100">
             <h3 className="text-blue-600 font-bold text-sm mb-3 flex items-center gap-2">
               <Code className="w-4 h-4" />
               Project Status
@@ -578,12 +728,12 @@ export default function DashboardPage() {
           </div>
 
           {/* Recent Activities - Compact */}
-          <div className="bg-white rounded-2xl p-4 border-2 border-purple-100 flex-1">
+          <div className="bg-white rounded-2xl p-4 border-2 border-purple-100">
             <h3 className="text-purple-600 font-bold text-sm mb-3 flex items-center gap-2">
               <Clock className="w-4 h-4" />
               Recent Activity
             </h3>
-            <div className="space-y-2 h-40 overflow-y-auto">
+            <div className="space-y-2 max-h-56 overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
               {recentActivities.map((activity) => (
                 <ActivityItem key={activity._id} activity={activity} />
               ))}
