@@ -1,4 +1,3 @@
-// app/tasks/page.tsx
 "use client";
 import { useState, useEffect } from "react";
 import { TaskStatus } from "@/lib/constants/TaskContants";
@@ -353,8 +352,8 @@ export default function TasksPage() {
         </div>
       </div>
 
-      {/* Kanban Board - Ultra Compact with Individual Column Scrolling */}
-      <div className="flex-1 grid grid-cols-3 gap-2 p-2 overflow-hidden">
+      {/* Kanban Board - Updated with Dashboard Card Design */}
+      <div className="flex-1 grid grid-cols-3 gap-4 p-4 overflow-hidden">
         {statusColumns.map((column) => (
           <div
             key={column.status}
@@ -362,95 +361,141 @@ export default function TasksPage() {
             onDragOver={(e) => handleDragOver(e, column.status)}
             onDrop={(e) => handleDrop(e, column.status)}
           >
-            {/* Column Header - Ultra Compact with Colorful Backgrounds */}
+            {/* Column Header - Updated with Dashboard Style */}
             <div
-              className={`flex items-center justify-between p-2 rounded-t border ${getStatusColor(
+              className={`rounded-t-2xl border-2 p-4 shrink-0 ${getStatusColor(
                 column.status
-              )} shrink-0`}
+              )}`}
             >
-              <div className="flex items-center gap-2">
-                <div
-                  className={`w-2 h-2 rounded-full ${getStatusHeaderColor(
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div
+                    className={`w-2 h-2 rounded-full ${getStatusHeaderColor(
+                      column.status
+                    )}`}
+                  ></div>
+                  <h3
+                    className={`font-bold text-sm ${getStatusTextColor(
+                      column.status
+                    )}`}
+                  >
+                    {column.title}
+                  </h3>
+                </div>
+                <span
+                  className={`px-1.5 py-0.5 rounded text-xs font-bold ${getStatusTextColor(
                     column.status
-                  )}`}
-                ></div>
-                <h3
-                  className={`font-semibold text-sm ${getStatusTextColor(
-                    column.status
-                  )}`}
+                  )} bg-white bg-opacity-20 border border-white border-opacity-30`}
                 >
-                  {column.title}
-                </h3>
+                  {column.count}
+                </span>
               </div>
-              <span
-                className={`px-1.5 py-0.5 rounded text-xs font-medium ${getStatusTextColor(
-                  column.status
-                )} bg-white bg-opacity-20 border border-white border-opacity-30`}
-              >
-                {column.count}
-              </span>
             </div>
 
-            {/* Tasks List - Individual Column Scrolling */}
+            {/* Tasks List - Updated with Dashboard Card Design */}
             <div
-              className={`flex-1 p-2 space-y-2 border-l border-r border-b rounded-b bg-gray-50 overflow-y-auto min-h-0`}
+              className={`flex-1 p-4 space-y-3 border-l-2 border-r-2 border-b-2 rounded-b-2xl bg-white overflow-y-auto min-h-0 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden ${
+                column.status === TaskStatus.TODO
+                  ? "border-orange-500"
+                  : column.status === TaskStatus.IN_PROGRESS
+                  ? "border-blue-600"
+                  : "border-green-600"
+              }`}
             >
               {tasksByStatus[column.status].map((task) => (
                 <div
                   key={task._id}
                   draggable
                   onDragStart={() => handleDragStart(task)}
-                  className="bg-white rounded border border-gray-200 p-2 hover:shadow-sm transition-all cursor-move shrink-0"
+                  className={`rounded-lg border-2 p-3 transition-all cursor-move shrink-0 ${
+                    column.status === TaskStatus.TODO
+                      ? "border-orange-200 bg-orange-50 hover:bg-orange-100"
+                      : column.status === TaskStatus.IN_PROGRESS
+                      ? "border-blue-200 bg-blue-50 hover:bg-blue-100"
+                      : "border-green-200 bg-green-50 hover:bg-green-100"
+                  }`}
                 >
-                  <div className="flex items-start justify-between mb-1">
-                    <h4 className="font-medium text-gray-900 text-xs leading-tight flex-1 pr-1">
+                  <div className="flex items-start justify-between mb-2">
+                    <h4 className="font-bold text-gray-900 text-sm leading-tight flex-1 pr-1">
                       {task.title}
                     </h4>
                   </div>
 
                   {task.description && (
-                    <p className="text-gray-600 text-xs mb-1 line-clamp-1 leading-relaxed">
+                    <p className="text-gray-700 text-xs mb-2 line-clamp-2 leading-relaxed">
                       {task.description}
                     </p>
                   )}
 
-                  <div className="space-y-1 mb-1">
-                    <div className="flex items-center gap-1 text-xs text-gray-600">
-                      <User className="w-3 h-3" />
-                      <span className="truncate text-xs">
+                  <div className="space-y-2 mb-2">
+                    <div className="flex items-center gap-1 text-xs">
+                      <User
+                        className={`w-3 h-3 ${
+                          column.status === TaskStatus.TODO
+                            ? "text-orange-600"
+                            : column.status === TaskStatus.IN_PROGRESS
+                            ? "text-blue-600"
+                            : "text-green-600"
+                        }`}
+                      />
+                      <span
+                        className={`font-medium ${
+                          column.status === TaskStatus.TODO
+                            ? "text-orange-700"
+                            : column.status === TaskStatus.IN_PROGRESS
+                            ? "text-blue-700"
+                            : "text-green-700"
+                        }`}
+                      >
                         {task.assignee.name}
                       </span>
                     </div>
-                    <div className="flex items-center gap-1 text-xs text-gray-600">
-                      <Calendar className="w-3 h-3" />
-                      <span className="text-xs">
+                    <div className="flex items-center gap-1 text-xs">
+                      <Calendar
+                        className={`w-3 h-3 ${
+                          column.status === TaskStatus.TODO
+                            ? "text-orange-600"
+                            : column.status === TaskStatus.IN_PROGRESS
+                            ? "text-blue-600"
+                            : "text-green-600"
+                        }`}
+                      />
+                      <span
+                        className={`font-medium ${
+                          column.status === TaskStatus.TODO
+                            ? "text-orange-700"
+                            : column.status === TaskStatus.IN_PROGRESS
+                            ? "text-blue-700"
+                            : "text-green-700"
+                        }`}
+                      >
                         {new Date(task.due_date).toLocaleDateString()}
                       </span>
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between pt-1 border-t border-gray-100">
+                  <div className="flex items-center justify-between pt-2 border-t border-gray-200">
                     <div className="flex items-center gap-1">
                       {getStatusIcon(task.status)}
                       <span
-                        className={`text-xs capitalize px-1.5 py-0.5 rounded-full ${getStatusColor(
+                        className={`text-xs font-bold capitalize px-2 py-1 rounded-full ${getStatusColor(
                           task.status
                         )}`}
                       >
                         {task.status.toLowerCase()}
                       </span>
                     </div>
-                    <div className="flex items-center gap-0.5">
+                    <div className="flex items-center gap-1">
                       <button
                         onClick={() => openEditModal(task)}
-                        className="p-0.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                        className="p-1 text-blue-600 hover:bg-blue-100 rounded transition-colors"
                         title="Edit task"
                       >
                         <Edit2 className="w-3 h-3" />
                       </button>
                       <button
                         onClick={() => handleDeleteTask(task._id)}
-                        className="p-0.5 text-red-600 hover:bg-red-50 rounded transition-colors"
+                        className="p-1 text-red-600 hover:bg-red-100 rounded transition-colors"
                         title="Delete task"
                       >
                         <Trash2 className="w-3 h-3" />
@@ -461,11 +506,9 @@ export default function TasksPage() {
               ))}
 
               {tasksByStatus[column.status].length === 0 && (
-                <div className="text-center py-4 bg-white rounded border-2 border-dashed border-gray-300 shrink-0">
-                  <div className="text-gray-400 text-xs">No tasks</div>
-                  <p className="text-gray-500 text-xs mt-0.5">
-                    Drag tasks here
-                  </p>
+                <div className="text-center py-6 bg-white rounded-lg border-2 border-dashed border-gray-300 shrink-0">
+                  <div className="text-gray-400 text-sm">No tasks</div>
+                  <p className="text-gray-500 text-xs mt-1">Drag tasks here</p>
                 </div>
               )}
             </div>
@@ -475,8 +518,8 @@ export default function TasksPage() {
 
       {/* No Results State */}
       {filteredTasks.length === 0 && tasks.length > 0 && (
-        <div className="text-center py-2 bg-white border-t border-gray-200 shrink-0">
-          <div className="text-gray-600 text-xs">
+        <div className="text-center py-3 bg-white border-t border-gray-200 shrink-0">
+          <div className="text-gray-600 text-sm">
             No tasks match your filters
           </div>
         </div>
