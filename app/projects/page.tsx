@@ -77,6 +77,7 @@ export default function ProjectsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [managerFilter, setManagerFilter] = useState<string>("all");
+  const [lastRefreshed, setLastRefreshed] = useState<Date | null>(null);
 
   // Form states
   const [formData, setFormData] = useState({
@@ -117,6 +118,7 @@ export default function ProjectsPage() {
         setProjects(result.data || []);
         setStatistics(result.statistics || null);
         setError(null);
+        setLastRefreshed(new Date()); // Update refresh timestamp
       } else {
         throw new Error(result.error || "Failed to fetch projects");
       }
@@ -162,9 +164,21 @@ export default function ProjectsPage() {
     }
   };
 
+  // Initial data fetch
   useEffect(() => {
     fetchProjects();
     fetchStaffMembers();
+  }, []);
+
+  // Auto-refresh every 30 seconds
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      console.log("Auto-refreshing projects...");
+      fetchProjects();
+    }, 30000); // 30 seconds
+
+    // Cleanup interval on component unmount
+    return () => clearInterval(intervalId);
   }, []);
 
   // Handle form input changes
@@ -433,6 +447,11 @@ export default function ProjectsPage() {
           <p className="text-gray-700 mt-1">
             Manage and track your development projects
           </p>
+          {lastRefreshed && (
+            <p className="text-xs text-gray-500 mt-1">
+              Last updated: {lastRefreshed.toLocaleTimeString()}
+            </p>
+          )}
         </div>
         <button
           onClick={() => setShowCreateModal(true)}
