@@ -66,6 +66,11 @@ export default function Sidebar({ isOpen = true, onClose }: SidebarProps) {
       icon: <Folder className="w-5 h-5" />,
     },
     {
+      name: "Project Manager",
+      href: "https://project-management-app-ten-phi.vercel.app/",
+      icon: <Folder className="w-5 h-5" />,
+    },
+    {
       name: "Development",
       href: "/development-projects",
       icon: <Code className="w-5 h-5" />,
@@ -85,8 +90,7 @@ export default function Sidebar({ isOpen = true, onClose }: SidebarProps) {
     <div
       className={`bg-gray-800 text-white transition-all duration-300 flex flex-col ${
         isCollapsed ? "w-16" : "w-64"
-      }`}
-    >
+      }`}>
       {/* Header */}
       <div className="p-4 border-b border-gray-700">
         <div className="flex items-center justify-between">
@@ -96,8 +100,7 @@ export default function Sidebar({ isOpen = true, onClose }: SidebarProps) {
           <button
             onClick={() => setIsCollapsed(!isCollapsed)}
             className="p-1.5 rounded-lg hover:bg-gray-700 transition-colors text-gray-300 hover:text-white"
-            title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-          >
+            title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}>
             {isCollapsed ? (
               <ChevronRight className="w-4 h-4" />
             ) : (
@@ -117,8 +120,7 @@ export default function Sidebar({ isOpen = true, onClose }: SidebarProps) {
               isActive(item.href)
                 ? "bg-blue-600 text-white shadow-sm"
                 : "text-gray-300 hover:bg-gray-700 hover:text-white"
-            } ${isCollapsed ? "justify-center" : ""}`}
-          >
+            } ${isCollapsed ? "justify-center" : ""}`}>
             <span className={`shrink-0 ${isCollapsed ? "" : "mr-3"}`}>
               {item.icon}
             </span>
@@ -137,8 +139,9 @@ export default function Sidebar({ isOpen = true, onClose }: SidebarProps) {
       {/* Logo */}
       <div className="p-4 bg-white border-r border-gray-700">
         <div
-          className={`flex ${isCollapsed ? "justify-center" : "justify-start"}`}
-        >
+          className={`flex ${
+            isCollapsed ? "justify-center" : "justify-start"
+          }`}>
           <Image
             src={Logo}
             alt="Company Logo"
