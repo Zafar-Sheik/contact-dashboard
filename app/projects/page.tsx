@@ -455,12 +455,12 @@ export default function ProjectsPage() {
   }
 
   return (
-    <div className="p-6 space-y-6 bg-gray-50 min-h-screen">
+    <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 bg-gray-50 min-h-screen">
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Projects</h2>
-          <p className="text-gray-700 mt-1">
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Projects</h2>
+          <p className="text-gray-700 mt-1 text-sm">
             Manage and track your development projects
           </p>
           {lastRefreshed && (
@@ -471,10 +471,10 @@ export default function ProjectsPage() {
         </div>
         <button
           onClick={() => setShowCreateModal(true)}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2 shadow-sm transition-colors"
+          className="bg-blue-600 text-white px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2 shadow-sm transition-colors text-sm"
         >
           <Plus className="w-4 h-4" />
-          <span>New Project</span>
+          <span className="hidden sm:inline">New Project</span>
         </button>
       </div>
 
@@ -499,63 +499,63 @@ export default function ProjectsPage() {
 
       {/* Statistics */}
       {statistics && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6">
             <div className="flex items-center gap-3 mb-2">
-              <Target className="w-6 h-6 text-blue-600" />
-              <h3 className="text-lg font-semibold text-gray-900">
+              <Target className="w-5 h-5 text-blue-600" />
+              <h3 className="text-sm sm:text-lg font-semibold text-gray-900">
                 Total Projects
               </h3>
             </div>
-            <p className="text-2xl font-bold text-gray-900">
+            <p className="text-xl sm:text-2xl font-bold text-gray-900">
               {statistics.totalProjects}
             </p>
-            <p className="text-sm text-gray-600 mt-1">All projects</p>
+            <p className="text-xs sm:text-sm text-gray-600 mt-1">All projects</p>
           </div>
 
-          <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6">
             <div className="flex items-center gap-3 mb-2">
-              <TrendingUp className="w-6 h-6 text-green-600" />
-              <h3 className="text-lg font-semibold text-gray-900">Active</h3>
+              <TrendingUp className="w-5 h-5 text-green-600" />
+              <h3 className="text-sm sm:text-lg font-semibold text-gray-900">Active</h3>
             </div>
-            <p className="text-2xl font-bold text-green-600">
+            <p className="text-xl sm:text-2xl font-bold text-green-600">
               {statistics.activeCount}
             </p>
-            <p className="text-sm text-gray-600 mt-1">In progress</p>
+            <p className="text-xs sm:text-sm text-gray-600 mt-1">In progress</p>
           </div>
 
-          <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6">
             <div className="flex items-center gap-3 mb-2">
-              <Target className="w-6 h-6 text-purple-600" />
-              <h3 className="text-lg font-semibold text-gray-900">
+              <Target className="w-5 h-5 text-purple-600" />
+              <h3 className="text-sm sm:text-lg font-semibold text-gray-900">
                 Total Budget
               </h3>
             </div>
-            <p className="text-2xl font-bold text-gray-900">
+            <p className="text-xl sm:text-2xl font-bold text-gray-900">
               {formatCurrency(statistics.totalBudget)}
             </p>
-            <p className="text-sm text-gray-600 mt-1">Combined budget</p>
+            <p className="text-xs sm:text-sm text-gray-600 mt-1">Combined budget</p>
           </div>
 
-          <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6">
             <div className="flex items-center gap-3 mb-2">
-              <AlertTriangle className="w-6 h-6 text-red-600" />
-              <h3 className="text-lg font-semibold text-gray-900">Overdue</h3>
+              <AlertTriangle className="w-5 h-5 text-red-600" />
+              <h3 className="text-sm sm:text-lg font-semibold text-gray-900">Overdue</h3>
             </div>
-            <p className="text-2xl font-bold text-red-600">
+            <p className="text-xl sm:text-2xl font-bold text-red-600">
               {statistics.overdueCount}
             </p>
-            <p className="text-sm text-gray-600 mt-1">Need attention</p>
+            <p className="text-xs sm:text-sm text-gray-600 mt-1">Need attention</p>
           </div>
         </div>
       )}
 
       {/* Filters and Search */}
       <div className="bg-white rounded-xl border border-gray-200 p-4">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">Filters</h3>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <h3 className="text-base font-medium text-gray-900 mb-3">Filters</h3>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-3 sm:gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-xs font-medium text-gray-700 mb-1">
               Search
             </label>
             <div className="relative">
@@ -565,19 +565,19 @@ export default function ProjectsPage() {
                 placeholder="Search projects..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 text-sm"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-xs font-medium text-gray-700 mb-1">
               Status
             </label>
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 text-sm"
             >
               <option value="all">All Status</option>
               {Object.values(ProjectStatus).map((status) => (
@@ -589,13 +589,13 @@ export default function ProjectsPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-xs font-medium text-gray-700 mb-1">
               Manager
             </label>
             <select
               value={managerFilter}
               onChange={(e) => setManagerFilter(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 text-sm"
             >
               <option value="all">All Managers</option>
               {staffMembers.map((staff) => (
@@ -609,13 +609,13 @@ export default function ProjectsPage() {
           <div className="flex items-end gap-2">
             <button
               onClick={clearFilters}
-              className="w-full px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+              className="w-full px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors text-sm"
             >
               Clear
             </button>
             <button
               onClick={applyFilters}
-              className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
             >
               Apply
             </button>
@@ -624,7 +624,7 @@ export default function ProjectsPage() {
       </div>
 
       {/* Projects Grid */}
-      <div className="grid gap-4">
+      <div className="grid gap-3 sm:gap-4">
         {filteredProjects.map((project) => {
           const daysRemaining = getDaysRemaining(project.end_date);
           const isOverdue = isProjectOverdue(project.end_date, project.status);
@@ -636,9 +636,9 @@ export default function ProjectsPage() {
                 isOverdue ? "border-red-300 bg-red-50" : "border-gray-200"
               }`}
             >
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-2">
+              <div className="flex flex-col sm:flex-row items-start justify-between">
+                <div className="flex-1 w-full">
+                  <div className="flex flex-wrap items-center gap-2 mb-2">
                     <h3 className="font-semibold text-gray-900 text-lg">
                       {project.name}
                     </h3>
@@ -664,26 +664,26 @@ export default function ProjectsPage() {
                     </p>
                   )}
 
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm text-gray-700">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm text-gray-700">
                     <div className="flex items-center gap-2">
-                      <Target className="w-4 h-4 text-gray-500" />
-                      <div>
-                        <span className="font-medium text-gray-900">
+                      <Target className="w-4 h-4 text-gray-500 shrink-0" />
+                      <div className="min-w-0">
+                        <span className="font-medium text-gray-900 block">
                           Manager:
                         </span>
-                        <p className="mt-1">
+                        <p className="mt-1 truncate">
                           {project.manager?.name || "Unknown"}
                         </p>
                       </div>
                     </div>
 
                     <div className="flex items-center gap-2">
-                      <Clock className="w-4 h-4 text-gray-500" />
-                      <div>
-                        <span className="font-medium text-gray-900">
+                      <Clock className="w-4 h-4 text-gray-500 shrink-0" />
+                      <div className="min-w-0">
+                        <span className="font-medium text-gray-900 block">
                           Timeline:
                         </span>
-                        <p className="mt-1">
+                        <p className="mt-1 text-xs">
                           {formatDate(project.start_date)} -{" "}
                           {formatDate(project.end_date)}
                         </p>
@@ -691,12 +691,12 @@ export default function ProjectsPage() {
                     </div>
 
                     <div className="flex items-center gap-2">
-                      <TrendingUp className="w-4 h-4 text-gray-500" />
-                      <div>
-                        <span className="font-medium text-gray-900">
+                      <TrendingUp className="w-4 h-4 text-gray-500 shrink-0" />
+                      <div className="min-w-0">
+                        <span className="font-medium text-gray-900 block">
                           Budget:
                         </span>
-                        <p className="mt-1">
+                        <p className="mt-1 truncate">
                           {project.budget
                             ? formatCurrency(project.budget)
                             : "Not set"}
@@ -705,13 +705,13 @@ export default function ProjectsPage() {
                     </div>
 
                     <div className="flex items-center gap-2">
-                      <AlertTriangle className="w-4 h-4 text-gray-500" />
-                      <div>
-                        <span className="font-medium text-gray-900">
+                      <AlertTriangle className="w-4 h-4 text-gray-500 shrink-0" />
+                      <div className="min-w-0">
+                        <span className="font-medium text-gray-900 block">
                           Status:
                         </span>
                         <p
-                          className={`mt-1 font-medium ${
+                          className={`mt-1 font-medium text-xs ${
                             isOverdue
                               ? "text-red-600"
                               : daysRemaining < 7
@@ -728,7 +728,7 @@ export default function ProjectsPage() {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 ml-4">
+                <div className="flex items-center gap-2 mt-3 sm:mt-0 sm:ml-4 shrink-0">
                   <button
                     onClick={() => openEditModal(project)}
                     className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
@@ -776,7 +776,7 @@ export default function ProjectsPage() {
       {/* Create Project Modal */}
       {showCreateModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl max-w-2xl w-full p-6 shadow-xl">
+          <div className="bg-white rounded-xl max-w-2xl w-full p-6 shadow-xl max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-gray-900">
                 Create New Project
@@ -940,7 +940,7 @@ export default function ProjectsPage() {
       {/* Edit Project Modal */}
       {showEditModal && editingProject && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl max-w-2xl w-full p-6 shadow-xl">
+          <div className="bg-white rounded-xl max-w-2xl w-full p-6 shadow-xl max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-gray-900">
                 Edit Project

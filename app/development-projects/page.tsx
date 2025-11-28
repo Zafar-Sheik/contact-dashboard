@@ -559,7 +559,7 @@ export default function DevelopmentProjectsPage() {
       {/* Filters and Search */}
       <div className="bg-white rounded-lg border border-gray-200 p-3">
         <h3 className="text-sm font-medium text-gray-900 mb-3">Filters</h3>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-1">
               Search
@@ -644,7 +644,7 @@ export default function DevelopmentProjectsPage() {
             >
               <div className="flex items-start justify-between">
                 <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-2">
+                  <div className="flex flex-wrap items-center gap-2 mb-2">
                     <h3 className="font-semibold text-gray-900 text-base">
                       {project.name}
                     </h3>
@@ -670,24 +670,24 @@ export default function DevelopmentProjectsPage() {
                     </p>
                   )}
 
-                  <div className="grid grid-cols-1 md:grid-cols-5 gap-3 text-xs text-gray-700 mb-2">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 text-xs text-gray-700 mb-2">
                     <div className="flex items-center gap-1">
-                      <User className="w-3 h-3 text-gray-500" />
-                      <div>
-                        <span className="font-medium text-gray-900">Lead:</span>
-                        <p className="mt-0.5">
+                      <User className="w-3 h-3 text-gray-500 shrink-0" />
+                      <div className="min-w-0">
+                        <span className="font-medium text-gray-900 block">Lead:</span>
+                        <p className="mt-0.5 truncate">
                           {project.lead?.name || "Unknown"}
                         </p>
                       </div>
                     </div>
 
                     <div className="flex items-center gap-1">
-                      <Calendar className="w-3 h-3 text-gray-500" />
-                      <div>
-                        <span className="font-medium text-gray-900">
+                      <Calendar className="w-3 h-3 text-gray-500 shrink-0" />
+                      <div className="min-w-0">
+                        <span className="font-medium text-gray-900 block">
                           Timeline:
                         </span>
-                        <p className="mt-0.5">
+                        <p className="mt-0.5 text-xs">
                           {formatDate(project.startDate)} -{" "}
                           {formatDate(project.endDate)}
                         </p>
@@ -695,12 +695,12 @@ export default function DevelopmentProjectsPage() {
                     </div>
 
                     <div className="flex items-center gap-1">
-                      <DollarSign className="w-3 h-3 text-gray-500" />
-                      <div>
-                        <span className="font-medium text-gray-900">
+                      <DollarSign className="w-3 h-3 text-gray-500 shrink-0" />
+                      <div className="min-w-0">
+                        <span className="font-medium text-gray-900 block">
                           Budget:
                         </span>
-                        <p className="mt-0.5">
+                        <p className="mt-0.5 truncate">
                           {project.budget
                             ? formatCurrency(project.budget)
                             : "Not set"}
@@ -709,13 +709,13 @@ export default function DevelopmentProjectsPage() {
                     </div>
 
                     <div className="flex items-center gap-1">
-                      <Clock className="w-3 h-3 text-gray-500" />
-                      <div>
-                        <span className="font-medium text-gray-900">
+                      <Clock className="w-3 h-3 text-gray-500 shrink-0" />
+                      <div className="min-w-0">
+                        <span className="font-medium text-gray-900 block">
                           Status:
                         </span>
                         <p
-                          className={`mt-0.5 font-medium ${
+                          className={`mt-0.5 font-medium text-xs ${
                             isOverdue
                               ? "text-red-600"
                               : daysRemaining < 7
@@ -732,9 +732,9 @@ export default function DevelopmentProjectsPage() {
 
                     {project.repositoryUrl && (
                       <div className="flex items-center gap-1">
-                        <GitBranch className="w-3 h-3 text-gray-500" />
-                        <div>
-                          <span className="font-medium text-gray-900">
+                        <GitBranch className="w-3 h-3 text-gray-500 shrink-0" />
+                        <div className="min-w-0">
+                          <span className="font-medium text-gray-900 block">
                             Repo:
                           </span>
                           <a
@@ -751,7 +751,7 @@ export default function DevelopmentProjectsPage() {
                   </div>
 
                   {project.technologies && project.technologies.length > 0 && (
-                    <div className="flex flex-wrap gap-1">
+                    <div className="flex flex-wrap gap-1 mt-2">
                       {project.technologies.map((tech, index) => (
                         <span
                           key={index}
@@ -765,7 +765,7 @@ export default function DevelopmentProjectsPage() {
                   )}
                 </div>
 
-                <div className="flex items-center gap-1 ml-3">
+                <div className="flex items-center gap-1 ml-3 shrink-0">
                   <button
                     onClick={() => openEditModal(project)}
                     className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"

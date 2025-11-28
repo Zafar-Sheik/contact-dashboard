@@ -316,17 +316,17 @@ export default function DashboardPage() {
     return (
       <motion.div
         whileHover={{ scale: 1.02 }}
-        className={`relative rounded-2xl p-4 border-2 transition-all duration-300 ${colorClasses[color]} h-full`}
+        className={`relative rounded-xl p-4 border-2 transition-all duration-300 ${colorClasses[color]} h-full`}
       >
         <div className="flex justify-between items-start h-full">
           <div className="flex-1">
             <p className="text-xs font-semibold opacity-80 uppercase tracking-wider mb-1">
               {title}
             </p>
-            <h3 className="text-2xl font-bold text-gray-900 mb-1">{value}</h3>
+            <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-1">{value}</h3>
             {subtitle && <p className="text-xs text-gray-600">{subtitle}</p>}
           </div>
-          <div className="p-2 bg-white rounded-xl shadow-sm border">
+          <div className="p-2 bg-white rounded-lg shadow-sm border">
             <Icon className="w-5 h-5" />
           </div>
         </div>
@@ -350,7 +350,7 @@ export default function DashboardPage() {
     isPending?: boolean;
   }) => (
     <div
-      className={`rounded-2xl border-2 h-full flex flex-col ${
+      className={`rounded-xl border-2 h-full flex flex-col ${
         isOverdue
           ? "bg-white border-red-300"
           : isPending
@@ -561,7 +561,7 @@ export default function DashboardPage() {
     });
 
     return (
-      <div className="flex items-center gap-3 p-3 rounded-xl bg-white border border-gray-200 hover:border-blue-300 transition-all">
+      <div className="flex items-center gap-3 p-3 rounded-lg bg-white border border-gray-200 hover:border-blue-300 transition-all">
         <div className="p-2 bg-blue-50 rounded-lg">
           <Icon className="w-4 h-4 text-blue-600" />
         </div>
@@ -602,16 +602,16 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen w-full bg-white text-gray-900 p-4">
+    <div className="min-h-screen w-full bg-white text-gray-900 p-4 sm:p-6">
       {/* Refresh Button */}
       <div className="flex justify-between items-center mb-4">
-        <div className="text-sm text-gray-500">
+        <div className="text-xs sm:text-sm text-gray-500">
           Auto-refreshes every 3 minutes
         </div>
         <motion.button
           whileTap={{ scale: 0.95 }}
           onClick={refreshData}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl border-2 border-blue-200 bg-white text-blue-700 hover:bg-blue-50 transition-all text-sm font-medium shadow-sm"
+          className="flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg border-2 border-blue-200 bg-white text-blue-700 hover:bg-blue-50 transition-all text-sm font-medium shadow-sm"
         >
           <RefreshCw
             className={`w-4 h-4 ${refreshing ? "animate-spin" : ""}`}
@@ -625,7 +625,7 @@ export default function DashboardPage() {
         {/* Left Column - Stats and Tasks */}
         <div className="lg:col-span-8 flex flex-col gap-4">
           {/* Stats Grid - Compact */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             <StatCard
               title="Tasks"
               value={stats.totalTasks}
@@ -657,7 +657,7 @@ export default function DashboardPage() {
           </div>
 
           {/* Tasks Section - Taller task cards that fit neatly on screen */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 min-h-[200px]">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 min-h-[200px]">
             <TaskList
               tasks={pendingTasks}
               title="Pending Tasks"
@@ -678,7 +678,7 @@ export default function DashboardPage() {
         {/* Right Column - Projects & Activities */}
         <div className="lg:col-span-4 flex flex-col gap-4">
           {/* Project Status - Compact */}
-          <div className="bg-white rounded-2xl p-4 border-2 border-blue-100">
+          <div className="bg-white rounded-xl p-4 border-2 border-blue-100">
             <h3 className="text-blue-600 font-bold text-sm mb-3 flex items-center gap-2">
               <Code className="w-4 h-4" />
               Project Status
@@ -728,7 +728,7 @@ export default function DashboardPage() {
           </div>
 
           {/* Recent Activities - Compact */}
-          <div className="bg-white rounded-2xl p-4 border-2 border-purple-100">
+          <div className="bg-white rounded-xl p-4 border-2 border-purple-100">
             <h3 className="text-purple-600 font-bold text-sm mb-3 flex items-center gap-2">
               <Clock className="w-4 h-4" />
               Recent Activity

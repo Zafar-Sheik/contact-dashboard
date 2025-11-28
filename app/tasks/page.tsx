@@ -127,9 +127,9 @@ function DayTasksModal({
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-lg max-w-4xl w-full max-h-[80vh] overflow-hidden flex flex-col">
         {/* Header */}
-        <div className="flex justify-between items-center p-6 border-b border-gray-200">
+        <div className="flex justify-between items-center p-4 sm:p-6 border-b border-gray-200">
           <div>
-            <h3 className="text-xl font-semibold text-gray-900">
+            <h3 className="text-lg sm:text-xl font-semibold text-gray-900">
               Tasks for {formatDate(day.date)}
             </h3>
             <p className="text-gray-500 text-sm mt-1">
@@ -146,7 +146,7 @@ function DayTasksModal({
         </div>
 
         {/* Tasks List */}
-        <div className="flex-1 overflow-y-auto p-6">
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6">
           {day.tasks.length === 0 ? (
             <div className="text-center py-8">
               <CalendarIcon className="w-12 h-12 text-gray-300 mx-auto mb-4" />
@@ -830,16 +830,16 @@ export default function TasksCalendarPage() {
         </div>
         <button
           onClick={openCreateModal}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2 transition-colors"
+          className="bg-blue-600 text-white px-3 py-1.5 rounded-lg hover:bg-blue-700 flex items-center gap-2 transition-colors text-sm"
         >
           <Plus className="w-4 h-4" />
-          <span>New Task</span>
+          <span className="hidden sm:inline">New Task</span>
         </button>
       </div>
 
       {/* Calendar Controls */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 p-4 bg-white border-b border-gray-200">
-        <div className="flex items-center gap-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 p-4 bg-white border-b border-gray-200">
+        <div className="flex items-center gap-3">
           <button
             onClick={goToToday}
             className="px-3 py-1.5 border border-gray-300 rounded text-sm hover:bg-gray-50 transition-colors"
@@ -862,7 +862,7 @@ export default function TasksCalendarPage() {
             </button>
           </div>
 
-          <h3 className="text-lg font-semibold text-gray-900 min-w-48">
+          <h3 className="text-base font-semibold text-gray-900 min-w-32">
             {currentDate.toLocaleDateString("en-US", {
               month: "long",
               year: "numeric",
@@ -872,9 +872,9 @@ export default function TasksCalendarPage() {
           </h3>
         </div>
 
-        <div className="flex items-center gap-4 flex-1 sm:flex-initial justify-between sm:justify-end">
+        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
           {/* View Mode Toggle */}
-          <div className="flex border border-gray-300 rounded-lg overflow-hidden">
+          <div className="flex border border-gray-300 rounded-lg overflow-hidden shrink-0">
             <button
               onClick={() => setViewMode("month")}
               className={`px-3 py-1.5 text-sm transition-colors ${
@@ -898,41 +898,39 @@ export default function TasksCalendarPage() {
           </div>
 
           {/* Search and Filter */}
-          <div className="flex items-center gap-2">
-            <div className="relative">
-              <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-500 w-4 h-4" />
-              <input
-                type="text"
-                placeholder="Search tasks..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-8 pr-3 py-1.5 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 placeholder-gray-600"
-              />
-            </div>
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="border border-gray-300 rounded px-3 py-1.5 text-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
-            >
-              <option value="all">All Status</option>
-              {Object.values(TaskStatus).map((status) => (
-                <option key={status} value={status}>
-                  {status}
-                </option>
-              ))}
-            </select>
-            <select
-              value={timeFilter}
-              onChange={(e) => setTimeFilter(e.target.value)}
-              className="border border-gray-300 rounded px-3 py-1.5 text-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
-            >
-              <option value="all">All Time</option>
-              <option value="no_time">No Time Set</option>
-              <option value="under_estimated">Under Estimated</option>
-              <option value="over_estimated">Over Estimated</option>
-              <option value="completed">Exactly Estimated</option>
-            </select>
+          <div className="relative flex-1 min-w-[120px]">
+            <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-500 w-4 h-4" />
+            <input
+              type="text"
+              placeholder="Search tasks..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-8 pr-3 py-1.5 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 placeholder-gray-600"
+            />
           </div>
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="border border-gray-300 rounded px-3 py-1.5 text-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 shrink-0"
+          >
+            <option value="all">All Status</option>
+            {Object.values(TaskStatus).map((status) => (
+              <option key={status} value={status}>
+                {status}
+              </option>
+            ))}
+          </select>
+          <select
+            value={timeFilter}
+            onChange={(e) => setTimeFilter(e.target.value)}
+            className="border border-gray-300 rounded px-3 py-1.5 text-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 shrink-0"
+          >
+            <option value="all">All Time</option>
+            <option value="no_time">No Time Set</option>
+            <option value="under_estimated">Under Estimated</option>
+            <option value="over_estimated">Over Estimated</option>
+            <option value="completed">Exactly Estimated</option>
+          </select>
         </div>
       </div>
 
@@ -943,9 +941,9 @@ export default function TasksCalendarPage() {
           {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
             <div
               key={day}
-              className="p-3 text-center font-semibold text-gray-700 bg-gray-100 rounded-lg"
+              className="p-2 text-center font-semibold text-gray-700 bg-gray-100 rounded-lg text-xs sm:text-sm"
             >
-              {day}
+              {viewMode === "week" ? day : day.substring(0, 1)}
             </div>
           ))}
         </div>
@@ -959,11 +957,11 @@ export default function TasksCalendarPage() {
           {calendarDays.map((day, index) => (
             <div
               key={index}
-              className={`min-h-32 border rounded-lg p-2 transition-colors cursor-pointer hover:bg-gray-50 ${
+              className={`min-h-24 sm:min-h-32 border rounded-lg p-2 transition-colors cursor-pointer hover:bg-gray-50 ${
                 day.isToday
                   ? "border-blue-500 bg-blue-50"
                   : "border-gray-200 bg-white"
-              } ${!day.isCurrentMonth ? "bg-gray-50 opacity-60" : ""}`}
+              } ${!day.isCurrentMonth && viewMode === "month" ? "bg-gray-50 opacity-60" : ""}`}
               onClick={() => handleDayClick(day)}
             >
               {/* Date Header */}
@@ -991,7 +989,7 @@ export default function TasksCalendarPage() {
                 {day.tasks.map((task) => (
                   <div
                     key={task._id}
-                    className={`p-2 rounded border text-xs cursor-pointer hover:shadow-md transition-all ${getStatusColor(
+                    className={`p-1 rounded border text-xs cursor-pointer hover:shadow-md transition-all ${getStatusColor(
                       task.status
                     )}`}
                     onClick={(e) => {
@@ -1017,19 +1015,19 @@ export default function TasksCalendarPage() {
                           <div className="flex items-center gap-2 mb-1">
                             {getTimeStatusIcon(task)}
                             {task.estimated_hours && (
-                              <span className="text-gray-600">
+                              <span className="text-gray-600 text-xs">
                                 Est: {task.estimated_hours}h
                               </span>
                             )}
                             {task.actual_hours && (
-                              <span className="text-gray-600">
+                              <span className="text-gray-600 text-xs">
                                 Act: {task.actual_hours}h
                               </span>
                             )}
                           </div>
                         )}
 
-                        <div className="text-gray-600 truncate">
+                        <div className="text-gray-600 truncate text-xs">
                           {task.assignee.name}
                           {task.due_time && ` • ${task.due_time}`}
                         </div>
@@ -1052,40 +1050,40 @@ export default function TasksCalendarPage() {
 
       {/* Enhanced Task Summary with Time Tracking */}
       <div className="border-t border-gray-200 bg-white p-4">
-        <div className="grid grid-cols-1 sm:grid-cols-6 gap-4 text-sm">
-          <div className="text-center p-3 bg-orange-50 border border-orange-200 rounded-lg">
+        <div className="grid grid-cols-3 sm:grid-cols-6 gap-3 text-xs">
+          <div className="text-center p-2 bg-orange-50 border border-orange-200 rounded-lg">
             <div className="text-orange-800 font-semibold">To Do</div>
-            <div className="text-2xl font-bold text-orange-600">
+            <div className="text-xl font-bold text-orange-600">
               {tasks.filter((t) => t.status === TaskStatus.TODO).length}
             </div>
           </div>
-          <div className="text-center p-3 bg-blue-50 border border-blue-200 rounded-lg">
+          <div className="text-center p-2 bg-blue-50 border border-blue-200 rounded-lg">
             <div className="text-blue-800 font-semibold">In Progress</div>
-            <div className="text-2xl font-bold text-blue-600">
+            <div className="text-xl font-bold text-blue-600">
               {tasks.filter((t) => t.status === TaskStatus.IN_PROGRESS).length}
             </div>
           </div>
-          <div className="text-center p-3 bg-green-50 border border-green-200 rounded-lg">
+          <div className="text-center p-2 bg-green-50 border border-green-200 rounded-lg">
             <div className="text-green-800 font-semibold">Done</div>
-            <div className="text-2xl font-bold text-green-600">
+            <div className="text-xl font-bold text-green-600">
               {tasks.filter((t) => t.status === TaskStatus.DONE).length}
             </div>
           </div>
-          <div className="text-center p-3 bg-purple-50 border border-purple-200 rounded-lg">
-            <div className="text-purple-800 font-semibold">Estimated Hours</div>
-            <div className="text-2xl font-bold text-purple-600">
+          <div className="text-center p-2 bg-purple-50 border border-purple-200 rounded-lg hidden sm:block">
+            <div className="text-purple-800 font-semibold">Est. Hours</div>
+            <div className="text-xl font-bold text-purple-600">
               {totalEstimatedHours.toFixed(1)}
             </div>
           </div>
-          <div className="text-center p-3 bg-indigo-50 border border-indigo-200 rounded-lg">
-            <div className="text-indigo-800 font-semibold">Actual Hours</div>
-            <div className="text-2xl font-bold text-indigo-600">
+          <div className="text-center p-2 bg-indigo-50 border border-indigo-200 rounded-lg hidden sm:block">
+            <div className="text-indigo-800 font-semibold">Act. Hours</div>
+            <div className="text-xl font-bold text-indigo-600">
               {totalActualHours.toFixed(1)}
             </div>
           </div>
-          <div className="text-center p-3 bg-gray-50 border border-gray-200 rounded-lg">
+          <div className="text-center p-2 bg-gray-50 border border-gray-200 rounded-lg hidden sm:block">
             <div className="text-gray-800 font-semibold">Avg Deviation</div>
-            <div className="text-2xl font-bold text-gray-600">
+            <div className="text-xl font-bold text-gray-600">
               {averageDeviation.toFixed(1)}h
             </div>
           </div>

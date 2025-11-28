@@ -257,82 +257,82 @@ export default function BudgetTracker() {
   }
 
   return (
-    <div className="p-6 space-y-6 bg-gray-50 min-h-screen">
+    <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 bg-gray-50 min-h-screen">
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Budget Tracker</h2>
-          <p className="text-gray-700 mt-1">
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Budget Tracker</h2>
+          <p className="text-gray-700 mt-1 text-sm">
             Monitor and manage your budget allocations
           </p>
         </div>
         <button
           onClick={openCreateModal}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2 shadow-sm transition-colors"
+          className="bg-blue-600 text-white px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2 shadow-sm transition-colors text-sm"
         >
           <Plus className="w-4 h-4" />
-          <span>New Entry</span>
+          <span className="hidden sm:inline">New Entry</span>
         </button>
       </div>
 
       {/* Statistics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6">
           <div className="flex items-center gap-3 mb-2">
             <DollarSign className="w-6 h-6 text-green-600" />
-            <h3 className="text-lg font-semibold text-gray-900">
+            <h3 className="text-sm sm:text-lg font-semibold text-gray-900">
               Total Budget
             </h3>
           </div>
-          <p className="text-2xl font-bold text-gray-900">
+          <p className="text-xl sm:text-2xl font-bold text-gray-900">
             {totalBudget.toLocaleString("en-ZA", {
               style: "currency",
               currency: "ZAR",
             })}
           </p>
-          <p className="text-sm text-gray-600 mt-1">
+          <p className="text-xs sm:text-sm text-gray-600 mt-1">
             {filteredEntries.length} entries
           </p>
         </div>
 
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6">
           <div className="flex items-center gap-3 mb-2">
             <TrendingUp className="w-6 h-6 text-blue-600" />
-            <h3 className="text-lg font-semibold text-gray-900">
+            <h3 className="text-sm sm:text-lg font-semibold text-gray-900">
               Average Entry
             </h3>
           </div>
-          <p className="text-2xl font-bold text-gray-900">
+          <p className="text-xl sm:text-2xl font-bold text-gray-900">
             {averageBudget.toLocaleString("en-ZA", {
               style: "currency",
               currency: "ZAR",
             })}
           </p>
-          <p className="text-sm text-gray-600 mt-1">Per category</p>
+          <p className="text-xs sm:text-sm text-gray-600 mt-1">Per category</p>
         </div>
 
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6">
           <div className="flex items-center gap-3 mb-2">
             <Calendar className="w-6 h-6 text-purple-600" />
-            <h3 className="text-lg font-semibold text-gray-900">
+            <h3 className="text-sm sm:text-lg font-semibold text-gray-900">
               Current Period
             </h3>
           </div>
-          <p className="text-2xl font-bold text-gray-900">
+          <p className="text-xl sm:text-2xl font-bold text-gray-900">
             {currentMonth} {currentYear}
           </p>
-          <p className="text-sm text-gray-600 mt-1">Active month</p>
+          <p className="text-xs sm:text-sm text-gray-600 mt-1">Active month</p>
         </div>
       </div>
 
       {/* Filters */}
-      <div className="flex gap-4 items-center">
-        <div className="flex items-center gap-2">
-          <Filter className="w-4 h-4 text-gray-700" />
+      <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-start sm:items-center">
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          <Filter className="w-4 h-4 text-gray-700 shrink-0" />
           <select
             value={monthFilter}
             onChange={(e) => setMonthFilter(e.target.value)}
-            className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 text-sm"
           >
             <option value="all">All Months</option>
             {months.map((month) => (
@@ -345,7 +345,7 @@ export default function BudgetTracker() {
         <select
           value={yearFilter}
           onChange={(e) => setYearFilter(e.target.value)}
-          className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
+          className="w-full sm:w-auto border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 text-sm"
         >
           <option value="all">All Years</option>
           {uniqueYears.map((year) => (
@@ -364,9 +364,9 @@ export default function BudgetTracker() {
             className="bg-white rounded-xl border border-gray-200 p-4 hover:shadow-md transition-shadow"
           >
             <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <div className="flex items-center gap-3 mb-2">
-                  <h3 className="font-semibold text-gray-900 text-lg">
+              <div className="flex-1 min-w-0">
+                <div className="flex flex-wrap items-center gap-3 mb-2">
+                  <h3 className="font-semibold text-gray-900 text-lg truncate">
                     {entry.category}
                   </h3>
                   <span
@@ -377,9 +377,9 @@ export default function BudgetTracker() {
                     {entry.category}
                   </span>
                 </div>
-                <div className="flex items-center gap-4 text-sm text-gray-700">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-sm text-gray-700">
                   <div className="flex items-center gap-1">
-                    <DollarSign className="w-4 h-4 text-gray-500" />
+                    <DollarSign className="w-4 h-4 text-gray-500 shrink-0" />
                     <span className="font-semibold text-lg">
                       {entry.amount.toLocaleString("en-ZA", {
                         style: "currency",
@@ -388,14 +388,14 @@ export default function BudgetTracker() {
                     </span>
                   </div>
                   <div className="flex items-center gap-1">
-                    <Calendar className="w-4 h-4 text-gray-500" />
+                    <Calendar className="w-4 h-4 text-gray-500 shrink-0" />
                     <span>
                       {entry.month} {entry.year}
                     </span>
                   </div>
                 </div>
               </div>
-              <div className="flex items-center gap-2 ml-4">
+              <div className="flex items-center gap-2 ml-4 shrink-0">
                 <button
                   onClick={() => openEditModal(entry)}
                   className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
@@ -440,7 +440,7 @@ export default function BudgetTracker() {
       {/* Budget Entry Modal */}
       {isFormOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl max-w-md w-full p-6 shadow-xl">
+          <div className="bg-white rounded-xl max-w-md w-full p-6 shadow-xl max-h-[90vh] overflow-y-auto">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">
               {isEditMode ? "Edit Budget Entry" : "Add New Budget Entry"}
             </h3>

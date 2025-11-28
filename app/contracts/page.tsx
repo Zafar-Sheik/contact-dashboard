@@ -216,6 +216,7 @@ export default function Contracts() {
     const startDate = new Date(formData.startDate);
     const endDate = new Date(formData.endDate);
 
+    // NOTE: API validation was removed, but client-side validation remains for UX
     if (endDate <= startDate) {
       showError("Error: End date must be after start date");
       return false;
@@ -307,94 +308,94 @@ export default function Contracts() {
   }
 
   return (
-    <div className="p-6 space-y-6 bg-gray-50 min-h-screen">
+    <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 bg-gray-50 min-h-screen">
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Contracts</h2>
-          <p className="text-gray-700 mt-1">
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Contracts</h2>
+          <p className="text-gray-700 mt-1 text-sm">
             Manage client contracts and agreements
           </p>
         </div>
         <button
           onClick={openCreateModal}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2 shadow-sm transition-colors"
+          className="bg-blue-600 text-white px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2 shadow-sm transition-colors text-sm"
         >
           <Plus className="w-4 h-4" />
-          <span>New Contract</span>
+          <span className="hidden sm:inline">New Contract</span>
         </button>
       </div>
 
       {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6">
           <div className="flex items-center gap-3 mb-2">
-            <FileText className="w-6 h-6 text-blue-600" />
-            <h3 className="text-lg font-semibold text-gray-900">
+            <FileText className="w-5 h-5 text-blue-600" />
+            <h3 className="text-sm sm:text-lg font-semibold text-gray-900">
               Total Contracts
             </h3>
           </div>
-          <p className="text-2xl font-bold text-gray-900">
+          <p className="text-xl sm:text-2xl font-bold text-gray-900">
             {statistics.totalContracts}
           </p>
-          <p className="text-sm text-gray-600 mt-1">All contracts</p>
+          <p className="text-xs sm:text-sm text-gray-600 mt-1">All contracts</p>
         </div>
 
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6">
           <div className="flex items-center gap-3 mb-2">
-            <DollarSign className="w-6 h-6 text-green-600" />
-            <h3 className="text-lg font-semibold text-gray-900">Total Value</h3>
+            <DollarSign className="w-5 h-5 text-green-600" />
+            <h3 className="text-sm sm:text-lg font-semibold text-gray-900">Total Value</h3>
           </div>
-          <p className="text-2xl font-bold text-gray-900">
+          <p className="text-xl sm:text-2xl font-bold text-gray-900">
             {statistics.totalValue.toLocaleString("en-ZA", {
               style: "currency",
               currency: "ZAR",
             })}
           </p>
-          <p className="text-sm text-gray-600 mt-1">Combined value</p>
+          <p className="text-xs sm:text-sm text-gray-600 mt-1">Combined value</p>
         </div>
 
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6">
           <div className="flex items-center gap-3 mb-2">
-            <CheckCircle className="w-6 h-6 text-green-600" />
-            <h3 className="text-lg font-semibold text-gray-900">Active</h3>
+            <CheckCircle className="w-5 h-5 text-green-600" />
+            <h3 className="text-sm sm:text-lg font-semibold text-gray-900">Active</h3>
           </div>
-          <p className="text-2xl font-bold text-green-600">
+          <p className="text-xl sm:text-2xl font-bold text-green-600">
             {statistics.activeCount}
           </p>
-          <p className="text-sm text-gray-600 mt-1">Current contracts</p>
+          <p className="text-xs sm:text-sm text-gray-600 mt-1">Current contracts</p>
         </div>
 
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6">
           <div className="flex items-center gap-3 mb-2">
-            <Clock className="w-6 h-6 text-blue-600" />
-            <h3 className="text-lg font-semibold text-gray-900">Pending</h3>
+            <Clock className="w-5 h-5 text-blue-600" />
+            <h3 className="text-sm sm:text-lg font-semibold text-gray-900">Pending</h3>
           </div>
-          <p className="text-2xl font-bold text-blue-600">
+          <p className="text-xl sm:text-2xl font-bold text-blue-600">
             {statistics.pendingCount}
           </p>
-          <p className="text-sm text-gray-600 mt-1">Awaiting action</p>
+          <p className="text-xs sm:text-sm text-gray-600 mt-1">Awaiting action</p>
         </div>
       </div>
 
       {/* Filters and Search */}
-      <div className="flex gap-4 items-center">
-        <div className="relative flex-1 max-w-md">
+      <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-start sm:items-center">
+        <div className="relative flex-1 w-full sm:max-w-md">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 w-4 h-4" />
           <input
             type="text"
             placeholder="Search contracts..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 placeholder-gray-600"
+            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 placeholder-gray-600 text-sm"
           />
         </div>
-        <div className="flex items-center gap-2">
-          <Filter className="w-4 h-4 text-gray-700" />
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          <Filter className="w-4 h-4 text-gray-700 shrink-0" />
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 text-sm"
           >
             <option value="all">All Status</option>
             <option value="Active">Active</option>
@@ -422,9 +423,9 @@ export default function Contracts() {
                   : "border-gray-200"
               }`}
             >
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-2">
+              <div className="flex flex-col sm:flex-row items-start justify-between">
+                <div className="flex-1 w-full">
+                  <div className="flex flex-wrap items-center gap-3 mb-2">
                     <h3 className="font-semibold text-gray-900 text-lg">
                       {contract.title}
                     </h3>
@@ -450,37 +451,45 @@ export default function Contracts() {
                     )}
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm text-gray-700 mb-3">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm text-gray-700 mb-3">
                     <div className="flex items-center gap-2">
-                      <User className="w-4 h-4 text-gray-500" />
-                      <span className="font-medium text-gray-900">
-                        Counterparty:
-                      </span>
-                      <span>{contract.counterparty}</span>
+                      <User className="w-4 h-4 text-gray-500 shrink-0" />
+                      <div className="min-w-0">
+                        <span className="font-medium text-gray-900 block">
+                          Counterparty:
+                        </span>
+                        <span className="truncate">{contract.counterparty}</span>
+                      </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Calendar className="w-4 h-4 text-gray-500" />
-                      <span className="font-medium text-gray-900">Start:</span>
-                      <span>
-                        {new Date(contract.startDate).toLocaleDateString()}
-                      </span>
+                      <Calendar className="w-4 h-4 text-gray-500 shrink-0" />
+                      <div className="min-w-0">
+                        <span className="font-medium text-gray-900 block">Start:</span>
+                        <span className="text-xs">
+                          {new Date(contract.startDate).toLocaleDateString()}
+                        </span>
+                      </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Calendar className="w-4 h-4 text-gray-500" />
-                      <span className="font-medium text-gray-900">End:</span>
-                      <span>
-                        {new Date(contract.endDate).toLocaleDateString()}
-                      </span>
+                      <Calendar className="w-4 h-4 text-gray-500 shrink-0" />
+                      <div className="min-w-0">
+                        <span className="font-medium text-gray-900 block">End:</span>
+                        <span className="text-xs">
+                          {new Date(contract.endDate).toLocaleDateString()}
+                        </span>
+                      </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <DollarSign className="w-4 h-4 text-gray-500" />
-                      <span className="font-medium text-gray-900">Value:</span>
-                      <span className="font-semibold">
-                        {contract.value.toLocaleString("en-ZA", {
-                          style: "currency",
-                          currency: "ZAR",
-                        })}
-                      </span>
+                      <DollarSign className="w-4 h-4 text-gray-500 shrink-0" />
+                      <div className="min-w-0">
+                        <span className="font-medium text-gray-900 block">Value:</span>
+                        <span className="font-semibold text-xs">
+                          {contract.value.toLocaleString("en-ZA", {
+                            style: "currency",
+                            currency: "ZAR",
+                          })}
+                        </span>
+                      </div>
                     </div>
                   </div>
 
@@ -493,7 +502,7 @@ export default function Contracts() {
                   )}
                 </div>
 
-                <div className="flex items-center gap-2 ml-4">
+                <div className="flex items-center gap-2 mt-3 sm:mt-0 sm:ml-4 shrink-0">
                   <button
                     onClick={() => openEditModal(contract)}
                     className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"

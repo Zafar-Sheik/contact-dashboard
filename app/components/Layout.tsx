@@ -2,6 +2,7 @@
 "use client";
 import { useState } from "react";
 import Sidebar from "./Sidebar";
+import { Menu, X } from "lucide-react";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -15,54 +16,55 @@ export default function Layout({ children }: LayoutProps) {
       {/* Mobile sidebar overlay */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 z-40 bg-gray-600 bg-opacity-75 lg:hidden"
+          className="fixed inset-0 z-40 bg-gray-900 bg-opacity-75 lg:hidden transition-opacity duration-300"
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
-      {/* Sidebar */}
+      {/* Desktop Sidebar */}
       <div className="hidden lg:flex lg:shrink-0">
         <Sidebar isOpen={true} />
       </div>
 
-      {/* Mobile sidebar */}
+      {/* Mobile Sidebar (Hamburger Menu) */}
       <div
-        className={`fixed inset-y-0 left-0 z-50 w-64 transform transition-transform lg:hidden ${
+        className={`fixed inset-y-0 left-0 z-50 w-64 transform transition-transform duration-300 ease-in-out lg:hidden ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
         <Sidebar isOpen={true} onClose={() => setSidebarOpen(false)} />
       </div>
 
-      {/* Main content */}
+      {/* Main Content Area */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Top navbar */}
-        <header className="bg-white shadow-sm z-10">
-          <div className="flex items-center justify-between px-4 ">
+        {/* Top Navbar (Fixed on Mobile) */}
+        <header className="sticky top-0 z-30 bg-white shadow-md lg:shadow-sm">
+          <div className="flex items-center justify-between h-16 px-4 lg:px-6">
+            {/* Hamburger Button (Visible on Mobile) */}
             <button
               onClick={() => setSidebarOpen(true)}
-              className="lg:hidden p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+              className="lg:hidden p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
+              aria-label="Open menu"
             >
-              <svg
-                className="w-6 h-6"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4 6h16M4 12h16M4 18h16"
-                />
-              </svg>
+              <Menu className="w-6 h-6" />
             </button>
-            <div className="w-6 lg:hidden" /> {/* Spacer for mobile */}
+            
+            {/* Desktop Header Content (Placeholder for future use) */}
+            <div className="hidden lg:block text-xl font-semibold text-gray-800">
+              {/* App Title or Breadcrumbs */}
+            </div>
+
+            {/* Right side (e.g., User Profile/Notifications) */}
+            <div className="flex items-center space-x-4">
+              {/* Placeholder for user actions */}
+            </div>
           </div>
         </header>
 
         {/* Page content */}
-        <main className="flex-1 overflow-auto">{children}</main>
+        <main className="flex-1 overflow-y-auto overflow-x-hidden">
+          {children}
+        </main>
       </div>
     </div>
   );

@@ -255,91 +255,91 @@ export default function CloudBackups() {
   }
 
   return (
-    <div className="p-6 space-y-6 bg-gray-50 min-h-screen">
+    <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 bg-gray-50 min-h-screen">
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Cloud Backups</h2>
-          <p className="text-gray-700 mt-1">
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Cloud Backups</h2>
+          <p className="text-gray-700 mt-1 text-sm">
             Manage and monitor your cloud backup operations
           </p>
         </div>
         <button
           onClick={openCreateModal}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2 shadow-sm transition-colors"
+          className="bg-blue-600 text-white px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2 shadow-sm transition-colors text-sm"
         >
           <Plus className="w-4 h-4" />
-          <span>New Backup</span>
+          <span className="hidden sm:inline">New Backup</span>
         </button>
       </div>
 
       {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6">
           <div className="flex items-center gap-3 mb-2">
-            <Database className="w-6 h-6 text-blue-600" />
-            <h3 className="text-lg font-semibold text-gray-900">
+            <Database className="w-5 h-5 text-blue-600" />
+            <h3 className="text-sm sm:text-lg font-semibold text-gray-900">
               Total Backups
             </h3>
           </div>
-          <p className="text-2xl font-bold text-gray-900">
+          <p className="text-xl sm:text-2xl font-bold text-gray-900">
             {statistics.totalBackups}
           </p>
-          <p className="text-sm text-gray-600 mt-1">All backups</p>
+          <p className="text-xs sm:text-sm text-gray-600 mt-1">All backups</p>
         </div>
 
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6">
           <div className="flex items-center gap-3 mb-2">
-            <Cloud className="w-6 h-6 text-purple-600" />
-            <h3 className="text-lg font-semibold text-gray-900">Total Size</h3>
+            <Cloud className="w-5 h-5 text-purple-600" />
+            <h3 className="text-sm sm:text-lg font-semibold text-gray-900">Total Size</h3>
           </div>
-          <p className="text-2xl font-bold text-gray-900">
+          <p className="text-xl sm:text-2xl font-bold text-gray-900">
             {statistics.totalSize.toFixed(2)} GB
           </p>
-          <p className="text-sm text-gray-600 mt-1">Storage used</p>
+          <p className="text-xs sm:text-sm text-gray-600 mt-1">Storage used</p>
         </div>
 
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6">
           <div className="flex items-center gap-3 mb-2">
-            <CheckCircle className="w-6 h-6 text-green-600" />
-            <h3 className="text-lg font-semibold text-gray-900">Successful</h3>
+            <CheckCircle className="w-5 h-5 text-green-600" />
+            <h3 className="text-sm sm:text-lg font-semibold text-gray-900">Successful</h3>
           </div>
-          <p className="text-2xl font-bold text-green-600">
+          <p className="text-xl sm:text-2xl font-bold text-green-600">
             {statistics.successCount}
           </p>
-          <p className="text-sm text-gray-600 mt-1">Completed backups</p>
+          <p className="text-xs sm:text-sm text-gray-600 mt-1">Completed backups</p>
         </div>
 
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6">
           <div className="flex items-center gap-3 mb-2">
-            <RefreshCw className="w-6 h-6 text-blue-600" />
-            <h3 className="text-lg font-semibold text-gray-900">In Progress</h3>
+            <RefreshCw className="w-5 h-5 text-blue-600" />
+            <h3 className="text-sm sm:text-lg font-semibold text-gray-900">In Progress</h3>
           </div>
-          <p className="text-2xl font-bold text-blue-600">
+          <p className="text-xl sm:text-2xl font-bold text-blue-600">
             {statistics.inProgressCount}
           </p>
-          <p className="text-sm text-gray-600 mt-1">Active backups</p>
+          <p className="text-xs sm:text-sm text-gray-600 mt-1">Active backups</p>
         </div>
       </div>
 
       {/* Filters and Search */}
-      <div className="flex gap-4 items-center">
-        <div className="relative flex-1 max-w-md">
+      <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-start sm:items-center">
+        <div className="relative flex-1 w-full sm:max-w-md">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 w-4 h-4" />
           <input
             type="text"
             placeholder="Search backups..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 placeholder-gray-600"
+            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 placeholder-gray-600 text-sm"
           />
         </div>
-        <div className="flex items-center gap-2">
-          <Filter className="w-4 h-4 text-gray-700" />
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          <Filter className="w-4 h-4 text-gray-700 shrink-0" />
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 text-sm"
           >
             <option value="all">All Status</option>
             <option value="Success">Success</option>
@@ -357,9 +357,9 @@ export default function CloudBackups() {
             className="bg-white rounded-xl border border-gray-200 p-4 hover:shadow-md transition-shadow"
           >
             <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <div className="flex items-center gap-3 mb-2">
-                  <h3 className="font-semibold text-gray-900 text-lg">
+              <div className="flex-1 min-w-0">
+                <div className="flex flex-wrap items-center gap-3 mb-2">
+                  <h3 className="font-semibold text-gray-900 text-lg truncate">
                     {backup.client}
                   </h3>
                   <span
@@ -372,20 +372,20 @@ export default function CloudBackups() {
                   </span>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-700">
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm text-gray-700">
                   <div>
-                    <span className="font-medium text-gray-900">Package:</span>
-                    <p className="mt-1">{backup.package}</p>
+                    <span className="font-medium text-gray-900 block">Package:</span>
+                    <p className="mt-1 text-xs sm:text-sm truncate">{backup.package}</p>
                   </div>
                   <div>
-                    <span className="font-medium text-gray-900">Size:</span>
-                    <p className="mt-1">{backup.sizeGB} GB</p>
+                    <span className="font-medium text-gray-900 block">Size:</span>
+                    <p className="mt-1 text-xs sm:text-sm">{backup.sizeGB} GB</p>
                   </div>
-                  <div>
-                    <span className="font-medium text-gray-900">
+                  <div className="col-span-2 md:col-span-1">
+                    <span className="font-medium text-gray-900 block">
                       Last Backup:
                     </span>
-                    <p className="mt-1">
+                    <p className="mt-1 text-xs sm:text-sm">
                       {new Date(backup.lastBackup).toLocaleDateString()} at{" "}
                       {new Date(backup.lastBackup).toLocaleTimeString()}
                     </p>
@@ -404,7 +404,7 @@ export default function CloudBackups() {
                 )}
               </div>
 
-              <div className="flex items-center gap-2 ml-4">
+              <div className="flex items-center gap-2 ml-4 shrink-0">
                 <button
                   onClick={() => openEditModal(backup)}
                   className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
@@ -449,7 +449,7 @@ export default function CloudBackups() {
       {/* Backup Modal */}
       {isFormOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl max-w-md w-full p-6 shadow-xl">
+          <div className="bg-white rounded-xl max-w-md w-full p-6 shadow-xl max-h-[90vh] overflow-y-auto">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">
               {isEditMode ? "Edit Cloud Backup" : "Initiate New Backup"}
             </h3>
