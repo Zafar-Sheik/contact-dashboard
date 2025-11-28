@@ -66,11 +66,6 @@ export default function Sidebar({ isOpen = true, onClose }: SidebarProps) {
       icon: <Folder className="w-5 h-5" />,
     },
     {
-      name: "Project Manager",
-      href: "https://project-management-app-ten-phi.vercel.app/",
-      icon: <Folder className="w-5 h-5" />,
-    },
-    {
       name: "Development",
       href: "/development-projects",
       icon: <Code className="w-5 h-5" />,
