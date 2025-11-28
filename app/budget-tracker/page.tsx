@@ -11,6 +11,7 @@ import {
   DollarSign,
   Filter,
 } from "lucide-react";
+import { showSuccess, showError } from "@/lib/utils/toast";
 
 interface BudgetEntry {
   _id: string;
@@ -65,7 +66,7 @@ export default function BudgetTracker() {
       }
     } catch (error) {
       console.error("Error fetching budget entries:", error);
-      alert("Failed to fetch budget entries");
+      showError("Failed to fetch budget entries");
     } finally {
       setLoading(false);
     }
@@ -98,13 +99,13 @@ export default function BudgetTracker() {
       if (result.success) {
         resetForm();
         fetchBudgetEntries();
-        alert("Budget entry created successfully!");
+        showSuccess("Budget entry created successfully!");
       } else {
-        alert(`Error: ${result.error}`);
+        showError(`Error: ${result.error}`);
       }
     } catch (error) {
       console.error("Error creating budget entry:", error);
-      alert("Failed to create budget entry");
+      showError("Failed to create budget entry");
     }
   };
 
@@ -129,13 +130,13 @@ export default function BudgetTracker() {
       if (result.success) {
         resetForm();
         fetchBudgetEntries();
-        alert("Budget entry updated successfully!");
+        showSuccess("Budget entry updated successfully!");
       } else {
-        alert(`Error: ${result.error}`);
+        showError(`Error: ${result.error}`);
       }
     } catch (error) {
       console.error("Error updating budget entry:", error);
-      alert("Failed to update budget entry");
+      showError("Failed to update budget entry");
     }
   };
 
@@ -157,13 +158,13 @@ export default function BudgetTracker() {
 
       if (result.success) {
         fetchBudgetEntries();
-        alert("Budget entry deleted successfully!");
+        showSuccess("Budget entry deleted successfully!");
       } else {
-        alert(`Error: ${result.error}`);
+        showError(`Error: ${result.error}`);
       }
     } catch (error) {
       console.error("Error deleting budget entry:", error);
-      alert("Failed to delete budget entry");
+      showError("Failed to delete budget entry");
     }
   };
 

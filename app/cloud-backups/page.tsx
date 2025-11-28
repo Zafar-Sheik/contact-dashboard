@@ -15,6 +15,7 @@ import {
   Download,
   RefreshCw,
 } from "lucide-react";
+import { showSuccess, showError } from "@/lib/utils/toast";
 
 interface CloudBackup {
   _id: string;
@@ -65,7 +66,7 @@ export default function CloudBackups() {
       }
     } catch (error) {
       console.error("Error fetching cloud backups:", error);
-      alert("Failed to fetch cloud backups");
+      showError("Failed to fetch cloud backups");
     } finally {
       setLoading(false);
     }
@@ -123,13 +124,13 @@ export default function CloudBackups() {
       if (result.success) {
         resetForm();
         fetchCloudBackups();
-        alert("Cloud backup initiated successfully!");
+        showSuccess("Cloud backup initiated successfully!");
       } else {
-        alert(`Error: ${result.error}`);
+        showError(`Error: ${result.error}`);
       }
     } catch (error) {
       console.error("Error creating cloud backup:", error);
-      alert("Failed to create cloud backup");
+      showError("Failed to create cloud backup");
     }
   };
 
@@ -154,13 +155,13 @@ export default function CloudBackups() {
       if (result.success) {
         resetForm();
         fetchCloudBackups();
-        alert("Cloud backup updated successfully!");
+        showSuccess("Cloud backup updated successfully!");
       } else {
-        alert(`Error: ${result.error}`);
+        showError(`Error: ${result.error}`);
       }
     } catch (error) {
       console.error("Error updating cloud backup:", error);
-      alert("Failed to update cloud backup");
+      showError("Failed to update cloud backup");
     }
   };
 
@@ -182,13 +183,13 @@ export default function CloudBackups() {
 
       if (result.success) {
         fetchCloudBackups();
-        alert("Cloud backup deleted successfully!");
+        showSuccess("Cloud backup deleted successfully!");
       } else {
-        alert(`Error: ${result.error}`);
+        showError(`Error: ${result.error}`);
       }
     } catch (error) {
       console.error("Error deleting cloud backup:", error);
-      alert("Failed to delete cloud backup");
+      showError("Failed to delete cloud backup");
     }
   };
 

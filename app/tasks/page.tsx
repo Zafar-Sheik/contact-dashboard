@@ -23,6 +23,7 @@ import {
   FileText,
   Image,
 } from "lucide-react";
+import { showSuccess, showError } from "@/lib/utils/toast";
 
 interface Task {
   _id: string;
@@ -306,9 +307,10 @@ export default function TasksCalendarPage() {
       const response = await fetch(url);
       const result = await response.json();
       if (result.success) setTasks(result.data);
+      else showError(result.error || "Failed to fetch tasks");
     } catch (err) {
       console.error(err);
-      alert("Failed to fetch tasks");
+      showError("Failed to fetch tasks");
     } finally {
       setLoading(false);
     }
@@ -362,9 +364,9 @@ export default function TasksCalendarPage() {
           setShowCreateModal(false);
           resetForm();
           fetchTasks();
-          alert("Task created successfully!");
+          showSuccess("Task created successfully!");
         } else {
-          alert(result.error);
+          showError(result.error);
         }
       } else {
         // Use JSON for tasks without files
@@ -386,12 +388,12 @@ export default function TasksCalendarPage() {
           setShowCreateModal(false);
           resetForm();
           fetchTasks();
-          alert("Task created successfully!");
-        } else alert(result.error);
+          showSuccess("Task created successfully!");
+        } else showError(result.error);
       }
     } catch (err) {
       console.error(err);
-      alert("Failed to create task");
+      showError("Failed to create task");
     } finally {
       setIsSubmitting(false);
     }
@@ -441,9 +443,9 @@ export default function TasksCalendarPage() {
           setShowEditModal(false);
           resetForm();
           fetchTasks();
-          alert("Task updated successfully!");
+          showSuccess("Task updated successfully!");
         } else {
-          alert(result.error);
+          showError(result.error);
         }
       } else {
         // Use JSON for tasks without file changes
@@ -466,12 +468,12 @@ export default function TasksCalendarPage() {
           setShowEditModal(false);
           resetForm();
           fetchTasks();
-          alert("Task updated successfully!");
-        } else alert(result.error);
+          showSuccess("Task updated successfully!");
+        } else showError(result.error);
       }
     } catch (err) {
       console.error(err);
-      alert("Failed to update task");
+      showError("Failed to update task");
     } finally {
       setIsSubmitting(false);
     }
@@ -492,13 +494,13 @@ export default function TasksCalendarPage() {
         setShowDeleteConfirm(false);
         setSelectedTask(null);
         fetchTasks();
-        alert("Task deleted successfully!");
+        showSuccess("Task deleted successfully!");
       } else {
-        alert(result.error);
+        showError(result.error);
       }
     } catch (err) {
       console.error(err);
-      alert("Failed to delete task");
+      showError("Failed to delete task");
     }
   };
 
@@ -524,7 +526,10 @@ export default function TasksCalendarPage() {
       const response = await fetch(
         `/api/tasks/file?taskId=${taskId}&filename=${filename}`
       );
-      if (!response.ok) throw new Error("Download failed");
+      if (!response.ok) {
+        const errorResult = await response.json();
+        throw new Error(errorResult.error || "Download failed");
+      }
 
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
@@ -537,7 +542,7 @@ export default function TasksCalendarPage() {
       document.body.removeChild(a);
     } catch (err) {
       console.error("Error downloading file:", err);
-      alert("Failed to download file");
+      showError(`Failed to download file: ${err instanceof Error ? err.message : 'Unknown error'}`);
     }
   };
 

@@ -24,6 +24,7 @@ import {
   GitBranch,
   Zap,
 } from "lucide-react";
+import { showSuccess, showError } from "@/lib/utils/toast";
 
 interface StaffMember {
   _id: string;
@@ -122,10 +123,14 @@ export default function DevelopmentProjectsPage() {
         setStatistics(result.statistics);
         setError(null);
       } else {
-        setError(result.error || "Failed to fetch development projects");
+        const errorMessage = result.error || "Failed to fetch development projects";
+        setError(errorMessage);
+        showError(errorMessage);
       }
     } catch (err) {
-      setError("Failed to fetch development projects");
+      const errorMessage = "Failed to fetch development projects";
+      setError(errorMessage);
+      showError(errorMessage);
       console.error("Error fetching development projects:", err);
     } finally {
       setLoading(false);
@@ -200,11 +205,16 @@ export default function DevelopmentProjectsPage() {
         resetForm();
         fetchProjects();
         setError(null);
+        showSuccess("Development project created successfully!");
       } else {
-        setError(result.error || "Failed to create development project");
+        const errorMessage = result.error || "Failed to create development project";
+        setError(errorMessage);
+        showError(errorMessage);
       }
     } catch (err) {
-      setError("Failed to create development project");
+      const errorMessage = "Failed to create development project";
+      setError(errorMessage);
+      showError(errorMessage);
       console.error("Error creating development project:", err);
     }
   };
@@ -243,11 +253,16 @@ export default function DevelopmentProjectsPage() {
         setEditingProject(null);
         fetchProjects();
         setError(null);
+        showSuccess("Development project updated successfully!");
       } else {
-        setError(result.error || "Failed to update development project");
+        const errorMessage = result.error || "Failed to update development project";
+        setError(errorMessage);
+        showError(errorMessage);
       }
     } catch (err) {
-      setError("Failed to update development project");
+      const errorMessage = "Failed to update development project";
+      setError(errorMessage);
+      showError(errorMessage);
       console.error("Error updating development project:", err);
     }
   };
@@ -275,11 +290,16 @@ export default function DevelopmentProjectsPage() {
       if (result.success) {
         fetchProjects();
         setError(null);
+        showSuccess("Development project deleted successfully!");
       } else {
-        setError(result.error || "Failed to delete development project");
+        const errorMessage = result.error || "Failed to delete development project";
+        setError(errorMessage);
+        showError(errorMessage);
       }
     } catch (err) {
-      setError("Failed to delete development project");
+      const errorMessage = "Failed to delete development project";
+      setError(errorMessage);
+      showError(errorMessage);
       console.error("Error deleting development project:", err);
     }
   };

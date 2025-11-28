@@ -16,6 +16,7 @@ import {
   XCircle,
   AlertTriangle,
 } from "lucide-react";
+import { showSuccess, showError } from "@/lib/utils/toast";
 
 interface Contract {
   _id: string;
@@ -71,7 +72,7 @@ export default function Contracts() {
       }
     } catch (error) {
       console.error("Error fetching contracts:", error);
-      alert("Failed to fetch contracts");
+      showError("Failed to fetch contracts");
     } finally {
       setLoading(false);
     }
@@ -139,13 +140,13 @@ export default function Contracts() {
       if (result.success) {
         resetForm();
         fetchContracts();
-        alert("Contract created successfully!");
+        showSuccess("Contract created successfully!");
       } else {
-        alert(`Error: ${result.error}`);
+        showError(`Error: ${result.error}`);
       }
     } catch (error) {
       console.error("Error creating contract:", error);
-      alert("Failed to create contract");
+      showError("Failed to create contract");
     }
   };
 
@@ -173,13 +174,13 @@ export default function Contracts() {
       if (result.success) {
         resetForm();
         fetchContracts();
-        alert("Contract updated successfully!");
+        showSuccess("Contract updated successfully!");
       } else {
-        alert(`Error: ${result.error}`);
+        showError(`Error: ${result.error}`);
       }
     } catch (error) {
       console.error("Error updating contract:", error);
-      alert("Failed to update contract");
+      showError("Failed to update contract");
     }
   };
 
@@ -201,13 +202,13 @@ export default function Contracts() {
 
       if (result.success) {
         fetchContracts();
-        alert("Contract deleted successfully!");
+        showSuccess("Contract deleted successfully!");
       } else {
-        alert(`Error: ${result.error}`);
+        showError(`Error: ${result.error}`);
       }
     } catch (error) {
       console.error("Error deleting contract:", error);
-      alert("Failed to delete contract");
+      showError("Failed to delete contract");
     }
   };
 
@@ -216,7 +217,7 @@ export default function Contracts() {
     const endDate = new Date(formData.endDate);
 
     if (endDate <= startDate) {
-      alert("Error: End date must be after start date");
+      showError("Error: End date must be after start date");
       return false;
     }
     return true;

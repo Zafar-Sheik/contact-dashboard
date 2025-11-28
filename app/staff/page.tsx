@@ -14,6 +14,7 @@ import {
   Briefcase,
   Building,
 } from "lucide-react";
+import { showSuccess, showError } from "@/lib/utils/toast";
 
 interface StaffMember {
   _id: string;
@@ -56,7 +57,7 @@ export default function StaffPage() {
       }
     } catch (error) {
       console.error("Error fetching staff:", error);
-      alert("Failed to fetch staff members");
+      showError("Failed to fetch staff members");
     } finally {
       setLoading(false);
     }
@@ -86,13 +87,13 @@ export default function StaffPage() {
           avatar_url: "",
         });
         fetchStaff();
-        alert("Staff member created successfully!");
+        showSuccess("Staff member created successfully!");
       } else {
-        alert(`Error: ${result.error}`);
+        showError(`Error: ${result.error}`);
       }
     } catch (error) {
       console.error("Error creating staff member:", error);
-      alert("Failed to create staff member");
+      showError("Failed to create staff member");
     }
   };
 
@@ -126,13 +127,13 @@ export default function StaffPage() {
           avatar_url: "",
         });
         fetchStaff();
-        alert("Staff member updated successfully!");
+        showSuccess("Staff member updated successfully!");
       } else {
-        alert(`Error: ${result.error}`);
+        showError(`Error: ${result.error}`);
       }
     } catch (error) {
       console.error("Error updating staff member:", error);
-      alert("Failed to update staff member");
+      showError("Failed to update staff member");
     }
   };
 
@@ -150,13 +151,13 @@ export default function StaffPage() {
 
       if (result.success) {
         fetchStaff();
-        alert("Staff member deleted successfully!");
+        showSuccess("Staff member deleted successfully!");
       } else {
-        alert(`Error: ${result.error}`);
+        showError(`Error: ${result.error}`);
       }
     } catch (error) {
       console.error("Error deleting staff member:", error);
-      alert("Failed to delete staff member");
+      showError("Failed to delete staff member");
     }
   };
 

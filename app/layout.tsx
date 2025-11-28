@@ -4,6 +4,7 @@ import { Inter } from "next/font/google";
 import localFont from "next/font/local";
 import "./globals.css";
 import Layout from "./components/Layout";
+import ToastProvider from "./components/ToastProvider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -31,7 +32,9 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.className} ${lastica.variable}`}>
       <body className="font-lastica">
-        <Layout>{children}</Layout>
+        <ToastProvider>
+          <Layout>{children}</Layout>
+        </ToastProvider>
       </body>
     </html>
   );

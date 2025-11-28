@@ -16,6 +16,7 @@ import {
   TrendingUp,
   Target,
 } from "lucide-react";
+import { showSuccess, showError } from "@/lib/utils/toast";
 
 interface StaffMember {
   _id: string;
@@ -233,11 +234,14 @@ export default function ProjectsPage() {
         resetForm();
         fetchProjects();
         setError(null);
+        showSuccess("Project created successfully!");
       } else {
         throw new Error(result.error || "Failed to create project");
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to create project");
+      const errorMessage = err instanceof Error ? err.message : "Failed to create project";
+      setError(errorMessage);
+      showError(errorMessage);
       console.error("Error creating project:", err);
     }
   };
@@ -279,11 +283,14 @@ export default function ProjectsPage() {
         setEditingProject(null);
         fetchProjects();
         setError(null);
+        showSuccess("Project updated successfully!");
       } else {
         throw new Error(result.error || "Failed to update project");
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to update project");
+      const errorMessage = err instanceof Error ? err.message : "Failed to update project";
+      setError(errorMessage);
+      showError(errorMessage);
       console.error("Error updating project:", err);
     }
   };
@@ -316,11 +323,14 @@ export default function ProjectsPage() {
       if (result.success) {
         fetchProjects();
         setError(null);
+        showSuccess("Project deleted successfully!");
       } else {
         throw new Error(result.error || "Failed to delete project");
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to delete project");
+      const errorMessage = err instanceof Error ? err.message : "Failed to delete project";
+      setError(errorMessage);
+      showError(errorMessage);
       console.error("Error deleting project:", err);
     }
   };
