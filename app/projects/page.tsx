@@ -1,4 +1,3 @@
-// app/projects/page.tsx
 "use client";
 
 import { useState, useEffect } from "react";
@@ -109,7 +108,9 @@ export default function ProjectsPage() {
       const response = await fetch(`/api/projects?${queryParams}`);
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        // Attempt to read specific error message from API response
+        const errorResult = await response.json();
+        throw new Error(errorResult.error || `HTTP error! status: ${response.status}`);
       }
 
       const result: ApiResponse = await response.json();
@@ -149,7 +150,9 @@ export default function ProjectsPage() {
       const response = await fetch("/api/staff-members");
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        // Attempt to read specific error message from API response
+        const errorResult = await response.json();
+        throw new Error(errorResult.error || `HTTP error! status: ${response.status}`);
       }
 
       const result: StaffApiResponse = await response.json();
@@ -219,7 +222,8 @@ export default function ProjectsPage() {
       });
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const errorResult = await response.json();
+        throw new Error(errorResult.error || `HTTP error! status: ${response.status}`);
       }
 
       const result = await response.json();
@@ -264,7 +268,8 @@ export default function ProjectsPage() {
       });
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const errorResult = await response.json();
+        throw new Error(errorResult.error || `HTTP error! status: ${response.status}`);
       }
 
       const result = await response.json();
@@ -302,7 +307,8 @@ export default function ProjectsPage() {
       });
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const errorResult = await response.json();
+        throw new Error(errorResult.error || `HTTP error! status: ${response.status}`);
       }
 
       const result = await response.json();
@@ -584,7 +590,7 @@ export default function ProjectsPage() {
               <option value="all">All Managers</option>
               {staffMembers.map((staff) => (
                 <option key={staff._id} value={staff._id}>
-                  {staff.name}
+                  {staff.name} ({staff.email})
                 </option>
               ))}
             </select>
@@ -750,7 +756,7 @@ export default function ProjectsPage() {
                   className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2 mx-auto shadow-sm transition-colors"
                 >
                   <Plus className="w-4 h-4" />
-                  <span>Create Project</span>
+                  <span>New Project</span>
                 </button>
               )}
           </div>
