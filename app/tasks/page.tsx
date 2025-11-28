@@ -839,10 +839,10 @@ export default function TasksCalendarPage() {
 
       {/* Calendar Controls */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 p-4 bg-white border-b border-gray-200">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 w-full sm:w-auto">
           <button
             onClick={goToToday}
-            className="px-3 py-1.5 border border-gray-300 rounded text-sm hover:bg-gray-50 transition-colors"
+            className="px-3 py-1.5 border border-gray-300 rounded text-sm hover:bg-gray-50 transition-colors shrink-0"
           >
             Today
           </button>
@@ -862,7 +862,7 @@ export default function TasksCalendarPage() {
             </button>
           </div>
 
-          <h3 className="text-base font-semibold text-gray-900 min-w-32">
+          <h3 className="text-base font-semibold text-gray-900 min-w-32 truncate">
             {currentDate.toLocaleDateString("en-US", {
               month: "long",
               year: "numeric",
@@ -1050,7 +1050,7 @@ export default function TasksCalendarPage() {
 
       {/* Enhanced Task Summary with Time Tracking */}
       <div className="border-t border-gray-200 bg-white p-4">
-        <div className="grid grid-cols-3 sm:grid-cols-6 gap-3 text-xs">
+        <div className="grid grid-cols-3 md:grid-cols-6 gap-3 text-xs">
           <div className="text-center p-2 bg-orange-50 border border-orange-200 rounded-lg">
             <div className="text-orange-800 font-semibold">To Do</div>
             <div className="text-xl font-bold text-orange-600">
@@ -1069,19 +1069,19 @@ export default function TasksCalendarPage() {
               {tasks.filter((t) => t.status === TaskStatus.DONE).length}
             </div>
           </div>
-          <div className="text-center p-2 bg-purple-50 border border-purple-200 rounded-lg hidden sm:block">
+          <div className="text-center p-2 bg-purple-50 border border-purple-200 rounded-lg hidden md:block">
             <div className="text-purple-800 font-semibold">Est. Hours</div>
             <div className="text-xl font-bold text-purple-600">
               {totalEstimatedHours.toFixed(1)}
             </div>
           </div>
-          <div className="text-center p-2 bg-indigo-50 border border-indigo-200 rounded-lg hidden sm:block">
+          <div className="text-center p-2 bg-indigo-50 border border-indigo-200 rounded-lg hidden md:block">
             <div className="text-indigo-800 font-semibold">Act. Hours</div>
             <div className="text-xl font-bold text-indigo-600">
               {totalActualHours.toFixed(1)}
             </div>
           </div>
-          <div className="text-center p-2 bg-gray-50 border border-gray-200 rounded-lg hidden sm:block">
+          <div className="text-center p-2 bg-gray-50 border border-gray-200 rounded-lg hidden md:block">
             <div className="text-gray-800 font-semibold">Avg Deviation</div>
             <div className="text-xl font-bold text-gray-600">
               {averageDeviation.toFixed(1)}h
