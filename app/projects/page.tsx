@@ -261,7 +261,7 @@ export default function ProjectsPage() {
           id: editingProject._id,
           name: editingProject.name,
           description: editingProject.description,
-          manager: editingProject.manager._id,
+          manager: editingProject.manager?._id, // Added optional chaining
           status: editingProject.status,
           budget: editingProject.budget
             ? parseFloat(editingProject.budget.toString())
