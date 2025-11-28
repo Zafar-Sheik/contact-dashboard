@@ -251,7 +251,7 @@ export async function PATCH(req: NextRequest) {
       );
     }
 
-    // Validate dates if provided
+    // Removed: Date validation logic
     if (updateData.startDate || updateData.endDate) {
       const startDate = updateData.startDate
         ? new Date(updateData.startDate)

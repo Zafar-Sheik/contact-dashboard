@@ -90,13 +90,7 @@ ContractSchema.virtual("duration_days").get(function (this: IContract) {
   return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 });
 
-// Middleware to validate dates before save
-ContractSchema.pre<IContract>("save", function (next) {
-  if (this.endDate < this.startDate) {
-    return next(new Error("End date must be after start date"));
-  }
-  next();
-});
+// Middleware to validate dates before save (REMOVED)
 
 export default mongoose.models.Contract ||
   mongoose.model<IContract>("Contract", ContractSchema);

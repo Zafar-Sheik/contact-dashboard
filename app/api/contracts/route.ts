@@ -133,15 +133,7 @@ export async function POST(req: NextRequest) {
     const start = new Date(startDate);
     const end = new Date(endDate);
 
-    if (end < start) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: "End date must be after start date",
-        },
-        { status: 400 }
-      );
-    }
+    // Removed: if (end < start) validation
 
     // Validate status if provided
     if (status && !Object.values(ContractStatus).includes(status)) {
@@ -243,25 +235,7 @@ export async function PATCH(req: NextRequest) {
       );
     }
 
-    // Validate dates if provided - FIXED VERSION
-    if (updateData.startDate || updateData.endDate) {
-      const start = updateData.startDate
-        ? new Date(updateData.startDate)
-        : new Date(existingContract.startDate);
-      const end = updateData.endDate
-        ? new Date(updateData.endDate)
-        : new Date(existingContract.endDate);
-
-      if (end <= start) {
-        return NextResponse.json(
-          {
-            success: false,
-            error: "End date must be after start date",
-          },
-          { status: 400 }
-        );
-      }
-    }
+    // Removed: Date validation logic
 
     // Validate status if provided
     if (
